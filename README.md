@@ -15,11 +15,18 @@ Skills are reusable prompt-driven modules that teach Copilot how to perform spec
 
 ## Table of Contents
 
-| Category | Skill | Description |
-|----------|-------|-------------|
-| **Test Log Collection for GH Copilot** | [`collect-test-copilot-logs`](#collect-test-copilot-logs) | Run all tests in a .NET repo, capture TRX results, console output, Cobertura code coverage, and Copilot diagnostic logs from `%TEMP%\VSGitHubCopilotLogs` — all stored under a timestamped `test-runs-copilot/` artifacts folder |
-| **Test Log Collection for .NET Testing Agent** | [`collect-test-testingagent-logs`](#collect-test-testingagent-logs) | Run all tests in a .NET repo, capture TRX results, console output, Cobertura code coverage, Copilot diagnostic logs, and .NET Testing Agent session logs from `%TEMP%\VSCodeTestingAgentLogs` — all stored under a timestamped `test-runs-testingagent/` artifacts folder |
-| **Testing Agent Review** | [`test-agent-review`](#test-agent-review) | Analyze a .NET Testing Agent run — classifies test quality, scores across five dimensions (Correctness, Coverage Impact, Behavioral Depth, Test Design Quality, Stability & Reliability), and produces a detailed evaluation report |
+### Test Log Collection Skills
+
+| Skill | Description |
+|-------|-------------|
+| [`collect-test-copilot-logs`](#collect-test-copilot-logs) | Collects logs, source files, generated test files from a .NET repo, file, folder, project or solution from a Copilot prompt like: "Write unit tests for X" — captures TRX results, console output, Cobertura code coverage, and Copilot diagnostic logs from `%TEMP%\VSGitHubCopilotLogs` — all stored under a timestamped `test-runs-copilot/` artifacts folder |
+| [`collect-test-testingagent-logs`](#collect-test-testingagent-logs) | Collects logs, source files, generated test files from a .NET repo, file, folder, project or solution from a .NET Testing Agent prompt like: "@Test Write unit tests for X" — captures TRX results, console output, Cobertura code coverage, Copilot diagnostic logs, and .NET Testing Agent session logs from `%TEMP%\VSCodeTestingAgentLogs` — all stored under a timestamped `test-runs-testingagent/` artifacts folder |
+
+### Testing Agent Review Skill(s)
+
+| Skill | Description |
+|-------|-------------|
+| [`test-agent-review`](#test-agent-review) | Analyze a .NET Testing Agent run — classifies test quality, scores across five dimensions (Correctness, Coverage Impact, Behavioral Depth, Test Design Quality, Stability & Reliability), and produces a detailed evaluation report |
 
 ## Skills
 
