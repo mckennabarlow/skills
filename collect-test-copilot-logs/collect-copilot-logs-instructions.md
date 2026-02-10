@@ -1,6 +1,16 @@
 # Instructions: Capture GitHub Copilot and Testing Logs
 Also includes: TRX + Console Output + Code Coverage (Repo Root) output
 
+## Run Metadata
+
+| Field | Value |
+|-------|-------|
+| **Tool** | GitHub Copilot |
+| **Prompt** | _(record the exact prompt passed to Copilot, e.g., "Generate unit tests for MyClass.cs")_ |
+| **Target** | _(file, folder, project, or solution targeted)_ |
+| **Date/Time** | _(date and time of the run)_ |
+| **Visual Studio Version** | _(e.g., 17.14 Preview 3)_ |
+
 Context:
 - This file lives at the root of the repository.
 - All commands must be executed relative to this directory.
