@@ -13,7 +13,64 @@ Skills are reusable prompt-driven modules that teach Copilot how to perform spec
 - **Outputs** — what the skill produces (reports, files, analysis)
 - **Detailed instructions** — step-by-step logic Copilot follows to execute the task
 
+## Table of Contents
+
+| Category | Skill | Description |
+|----------|-------|-------------|
+| **Test Log Collection for GH Copilot** | [`collect-test-copilot-logs`](#collect-test-copilot-logs) | Run all tests in a .NET repo, capture TRX results, console output, Cobertura code coverage, and Copilot diagnostic logs from `%TEMP%\VSGitHubCopilotLogs` — all stored under a timestamped `test-runs-copilot/` artifacts folder |
+| **Test Log Collection for .NET Testing Agent** | [`collect-test-testingagent-logs`](#collect-test-testingagent-logs) | Run all tests in a .NET repo, capture TRX results, console output, Cobertura code coverage, Copilot diagnostic logs, and .NET Testing Agent session logs from `%TEMP%\VSCodeTestingAgentLogs` — all stored under a timestamped `test-runs-testingagent/` artifacts folder |
+| **Testing Agent Review** | [`test-agent-review`](#test-agent-review) | Analyze a .NET Testing Agent run — classifies test quality, scores across five dimensions (Correctness, Coverage Impact, Behavioral Depth, Test Design Quality, Stability & Reliability), and produces a detailed evaluation report |
+
 ## Skills
+
+### [`collect-test-copilot-logs`](./collect-test-copilot-logs/)
+
+**Capture GitHub Copilot and testing logs after a test run.**
+
+This skill automates the collection of test artifacts and Copilot diagnostic logs from a .NET repository. Place the instructions file at the repo root and it will:
+
+- **Run all tests** in the repo (solution-level if a `.sln` exists) with TRX logging and code coverage collection
+- **Capture console output** — redirects all test output to a file
+- **Collect Copilot logs** — automatically copies the most recent log from `%TEMP%\VSGitHubCopilotLogs`
+- **Collect code coverage** — locates and copies the Cobertura XML report
+- **Prompt for manual confirmation** — reminds the user to verify the Copilot log matches the current session
+
+All artifacts are stored under `./artifacts/test-runs-copilot/<YYYYMMDD-HHMMSS>/`.
+
+#### Quick Start
+
+Copy `collect-copilot-logs-instructions.md` to the root of your .NET repository and follow the steps inside, or invoke via Copilot:
+
+```
+Collect Copilot and test logs for this repo
+```
+
+---
+
+### [`collect-test-testingagent-logs`](./collect-test-testingagent-logs/)
+
+**Capture .NET Testing Agent and testing logs after a test run.**
+
+This skill automates the collection of test artifacts, Copilot diagnostic logs, and .NET Testing Agent logs from a .NET repository. Place the instructions file at the repo root and it will:
+
+- **Run all tests** in the repo (solution-level if a `.sln` exists) with TRX logging and code coverage collection
+- **Capture console output** — redirects all test output to a file
+- **Collect Copilot logs** — automatically copies the most recent log from `%TEMP%\VSGitHubCopilotLogs`
+- **Collect Testing Agent logs** — copies the most recently created subfolder from `%TEMP%\VSCodeTestingAgentLogs` into a `testingagent-logs/` folder
+- **Collect code coverage** — locates and copies the Cobertura XML report
+- **Prompt for manual confirmation** — reminds the user to verify the Copilot log matches the current session
+
+All artifacts are stored under `./artifacts/test-runs-testingagent/<YYYYMMDD-HHMMSS>/`.
+
+#### Quick Start
+
+Copy `collect-testingagent-logs-instructions.md` to the root of your .NET repository and follow the steps inside, or invoke via Copilot:
+
+```
+Collect Testing Agent and test logs for this repo
+```
+
+---
 
 ### [`test-agent-review`](./test-agent-review/)
 
