@@ -101,10 +101,14 @@ Extract `<ProjectName>` from the log — use the solution name, repo folder name
 - Why was this file recommended for test generation? (extract from any available context or note as "N/A")
 
 ### Run Metadata
-- **Log file:** full path
-- **Target:** full path to the source file under test
+- **Tool:** .NET Testing Agent
+- **Prompt:** the exact prompt passed to the Testing Agent (extract from log, e.g., `@test Write unit tests for all the open files`)
+- **Target:** full path to the source file(s) or folder under test
+- **Date/Time:** date and time of the run (extract from first timestamp in log)
+- **Visual Studio Version:** (ask the user if not present in the log, e.g., `17.14 Preview 3`)
 - **Agent version:** extract from first line of log (e.g., `.NET Code Testing Agent v0.4.943-alpha+...`)
 - **Model:** the LLM model used (ask the user if not present in the log)
+- **Log file:** full path
 - **Total duration:** calculate from first and last timestamps in the log (format: `X minutes Y seconds`)
 
 ### Result
