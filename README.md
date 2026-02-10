@@ -36,6 +36,60 @@ Review the testing agent run in C:\path\to\TestingAgentFolder, source file is C:
 
 The report is saved as a timestamped markdown file (e.g., `02062026-TestAgentReview-Run1/02062026-TestingAgent-eShop.md`).
 
+## Using These Skills
+
+### GitHub Copilot CLI
+
+The Copilot CLI has built-in skill management via the `/skills` slash command.
+
+1. **Add a skill from a local folder:**
+
+   ```
+   /skills add <path-to-skill-folder>
+   ```
+
+   For example, to install `test-agent-review` after cloning this repo:
+
+   ```
+   /skills add C:\path\to\skills\test-agent-review
+   ```
+
+   This copies the `SKILL.md` into `~/.copilot/skills/<skill-name>/`.
+
+2. **List installed skills:**
+
+   ```
+   /skills list
+   ```
+
+3. **Get info about an installed skill:**
+
+   ```
+   /skills info test-agent-review
+   ```
+
+4. **Remove a skill:**
+
+   ```
+   /skills remove test-agent-review
+   ```
+
+Once installed, simply use one of the skill's trigger phrases in your conversation and Copilot will automatically activate it.
+
+### VS Code (GitHub Copilot Chat)
+
+You can use a skill in VS Code by placing the `SKILL.md` content into one of the custom instruction locations that Copilot Chat reads automatically:
+
+1. **As a prompt file** (recommended for on-demand use):
+   - Copy the `SKILL.md` file into your repo at `.github/prompts/<skill-name>.prompt.md`
+   - In Copilot Chat, reference it with `#prompt:<skill-name>` or click the **+** button to attach it
+
+2. **As an instructions file** (for automatic activation):
+   - Copy the `SKILL.md` file into your repo at `.github/instructions/<skill-name>.instructions.md`
+   - Copilot will automatically include the instructions when the context matches
+
+> **Note:** VS Code uses the `.github/copilot-instructions.md` file and the `.github/instructions/` folder for custom instructions. Make sure the **"Enable custom instructions"** setting is turned on in VS Code under **Settings → GitHub Copilot → Chat**.
+
 ## Adding a New Skill
 
 1. Create a new folder under the repo root (e.g., `my-new-skill/`)
