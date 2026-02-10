@@ -1,4 +1,4 @@
-# .NET Copilot Skills
+# .NET Copilot Testing Agent Skills
 
 A collection of prototype [Copilot Skills](https://docs.github.com/en/copilot/copilot-extensions/copilot-skills) for .NET development workflows. These skills extend GitHub Copilot CLI with domain-specific capabilities tailored to common .NET tasks and capabilities.
 
@@ -19,19 +19,25 @@ Skills are reusable prompt-driven modules that teach Copilot how to perform spec
 
 **Analyze and evaluate a .NET Code Testing Agent run.**
 
-This skill reviews the output of a [.NET Code Testing Agent](https://devblogs.microsoft.com/dotnet/introducing-code-testing-agent/) run and produces a detailed markdown evaluation report. Given a folder containing the agent's log file and generated test files, it:
+This skill reviews the output of a [.NET Testing Agent](https://learn.microsoft.com/en-us/visualstudio/test/unit-testing-with-github-copilot-test-dotnet?view=visualstudio) run and produces a detailed markdown evaluation report. You provide a folder containing the agent's log file and generated test files, along with the original source file or folder of source code that was targeted for test generation. The skill then:
 
 - **Reconstructs the run timeline** — extracts key events, durations, and milestones from the agent log
 - **Analyzes compilation errors** — catalogs C# error codes and explains root causes
 - **Tracks deleted tests** — identifies tests the agent generated but later removed during fix iterations, and assesses whether they could have been salvaged
 - **Classifies test quality** — categorizes every generated test method as Behavioral, Trivial, or Redundant by reading the test code against the original source file
 - **Scores the run** — computes a hybrid rubric + LLM-adjusted score (0–100) across five dimensions: Correctness, Coverage Impact, Behavioral Depth, Test Design Quality, and Stability & Reliability
-- **Suggests actionable issues** — proposes up to 10 concrete, ROI-prioritized improvements for the Testing Agent based on evidence from the run
+- **Suggests actionable issues** — proposes up to 10 concrete, ROI-prioritized improvements that can be logged as issues against the Testing Agent to help improve its behavior over time
 
 #### Quick Start
 
 ```
 Review the testing agent run in C:\path\to\TestingAgentFolder, source file is C:\path\to\MyClass.cs
+```
+
+or with a folder of source files:
+
+```
+Review the testing agent run in C:\path\to\TestingAgentFolder, source is C:\path\to\src\MyProject
 ```
 
 The report is saved as a timestamped markdown file (e.g., `02062026-TestAgentReview-Run1/02062026-TestingAgent-eShop.md`).
