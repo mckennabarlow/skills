@@ -113,6 +113,10 @@ Extract `<ProjectName>` from the log — use the solution name, repo folder name
 - **Model:** the LLM model used (ask the user if not present in the log)
 - **Log file:** full path
 - **Total duration:** calculate from first and last timestamps in the log (format: `X minutes Y seconds`)
+- **LLM usage:** extract from the log:
+  - **LLM call count:** count occurrences of LLM call entries (e.g., `LLM call` or `TotalElapsed` patterns)
+  - **Total LLM elapsed time:** sum of all `TotalElapsed` values (format: `X minutes Y seconds`)
+  - If LLM usage data is not available in the log, note "LLM usage data not available in log"
 
 ### Result
 - One-line summary (e.g., "13 tests generated — all passing, 100% coverage" or "0 tests generated — compilation errors could not be resolved")
@@ -235,7 +239,9 @@ When producing this section:
    Within the same tier, sort by score descending.
 
 4) Include the ROI tier in each issue header:
-   Example: `### Issue 1 (ROI: HIGH): 17 tests still failing at final run with no fix cycle triggered`
+   Example: `
+
+### Issue 1 (ROI: HIGH): 17 tests still failing at final run with no fix cycle triggered`
 
 5) For each issue, include a short "Why ROI" line (1 sentence) stating the main reason:
    Examples:
@@ -249,14 +255,25 @@ When producing this section:
 Each issue must follow this format:
 
 ```
+
 ### Issue N (ROI: <tier>): <Short title>
 
-**Problem:** <What was observed in this run — cite specific test methods, error codes, or log entries>
+- **Problem:** <What was observed in this run — cite specific test methods, error codes, or log entries>
 
-**Suggested fix:** <Concrete, implementable change the agent could make>
+- **Suggested fix:** <Concrete, implementable change the agent could make>
 
-**Why ROI:** <1 sentence — the main reason this issue merits its tier>
+- **Fix location:** <Where the fix would be implemented — one or more of: `LLM prompt/model`, `Testing Agent orchestrator`, `Roslyn analyzers`, `NuGet/MSBuild tooling`, `VS test runner`, `User workflow`>
+
+- **Why ROI:** <1 sentence — the main reason this issue merits its tier>
 ```
+
+**Fix location values** — use the most specific label(s) that apply:
+- **LLM prompt/model** — the fix requires better prompting, fine-tuning, or model capability (e.g., generating smarter test code)
+- **Testing Agent orchestrator** — the fix is in the agent's control logic (e.g., fix loop, file selection, stall detection, strategy switching)
+- **Roslyn analyzers** — the fix involves static analysis, diagnostics, or code-aware checks (e.g., detecting sealed classes before generating mocks)
+- **NuGet/MSBuild tooling** — the fix involves package management, build configuration, or project file handling
+- **VS test runner** — the fix involves test discovery, execution, or caching in Visual Studio
+- **User workflow** — the fix is a recommendation for the user (e.g., extracting an interface, changing project structure)
 
 **Common patterns to look for (use only if evidenced):**
 - Behavioral tests deleted during fix iterations that could have been salvaged with a simpler fix
@@ -297,6 +314,7 @@ Only include issues that are **directly evidenced** by this run. If fewer than 1
   - `merged` — merge results
   - `Successfully created test file` — file creation
   - `Removing test` / `Deleted` / `removed` — tests deleted during fix iterations (compare initial generated count vs. final count)
+  - `LLM call` / `TotalElapsed` — LLM call count and elapsed time per call
 
 ---
 

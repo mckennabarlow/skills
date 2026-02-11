@@ -112,6 +112,11 @@ Extract `<ProjectName>` from the log — use the solution name, repo folder name
 - **Model:** the LLM model used (ask the user if not present in the log)
 - **Log file:** full path
 - **Total duration:** extract from timestamps if available; note "Unknown (log lacks per-line timestamps)" if not
+- **LLM usage:** extract from the log:
+  - **LLM round-trips:** count of `EventType(9)` entries (each is a request to the LLM)
+  - **Total tokens:** extract from the final `InputTokenCount` / `OutputTokenCount` / `TotalTokenCount` entry
+  - **Cached tokens:** extract `prompt_tokens_details_cached_tokens` if present
+  - If token data is not available in the log, note "Token usage data not available in log"
 
 ### Result
 - One-line summary (e.g., "15 tests generated — all passing" or "8 tests generated — unvalidated, no build/test execution performed")
@@ -227,7 +232,9 @@ When producing this section:
    Within the same tier, sort by score descending.
 
 4) Include the ROI tier in each issue header:
-   Example: `### Issue 1 (ROI: HIGH): Tests generated but never validated via build or test execution`
+   Example: `
+
+### Issue 1 (ROI: HIGH): Tests generated but never validated via build or test execution`
 
 5) For each issue, include a short "Why ROI" line (1 sentence) stating the main reason.
 
@@ -238,14 +245,25 @@ When producing this section:
 Each issue must follow this format:
 
 ```
+
 ### Issue N (ROI: <tier>): <Short title>
 
-**Problem:** <What was observed in this run — cite specific test methods, error codes, or log entries>
+- **Problem:** <What was observed in this run — cite specific test methods, error codes, or log entries>
 
-**Suggested fix:** <Concrete, implementable change or workflow improvement>
+- **Suggested fix:** <Concrete, implementable change or workflow improvement>
 
-**Why ROI:** <1 sentence — the main reason this issue merits its tier>
+- **Fix location:** <Where the fix would be implemented — one or more of: `LLM prompt/model`, `Copilot Agent orchestrator`, `Roslyn analyzers`, `NuGet/MSBuild tooling`, `VS test runner`, `User workflow`>
+
+- **Why ROI:** <1 sentence — the main reason this issue merits its tier>
 ```
+
+**Fix location values** — use the most specific label(s) that apply:
+- **LLM prompt/model** — the fix requires better prompting, fine-tuning, or model capability (e.g., generating smarter test code)
+- **Copilot Agent orchestrator** — the fix is in Copilot's agent mode control logic (e.g., tool selection, file handling, validation loops)
+- **Roslyn analyzers** — the fix involves static analysis, diagnostics, or code-aware checks (e.g., detecting sealed classes before generating mocks)
+- **NuGet/MSBuild tooling** — the fix involves package management, build configuration, or project file handling
+- **VS test runner** — the fix involves test discovery, execution, or caching in Visual Studio
+- **User workflow** — the fix is a recommendation for the user (e.g., extracting an interface, changing project structure)
 
 **Common patterns to look for (use only if evidenced):**
 - Tests generated but never built or executed (unvalidated code)
@@ -279,6 +297,9 @@ Only include issues that are **directly evidenced** by this run. If fewer than 1
   - `PLAN UPDATE` — plan tracking issues
   - `statusNotification` — auth/status errors
   - `MCP server` — MCP server availability
+  - `EventType(9)` — LLM request calls (count for round-trip total)
+  - `InputTokenCount` / `OutputTokenCount` / `TotalTokenCount` — token usage per call
+  - `prompt_tokens_details_cached_tokens` — cached token count
 
 ### Copilot Diagnostic Log (from %TEMP%\VSGitHubCopilotLogs)
 - **Timestamps:** Each line typically includes timestamps

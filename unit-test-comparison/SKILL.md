@@ -453,7 +453,9 @@ When producing this section:
    Within the same tier, sort by score descending.
 
 4) Include the ROI tier in each issue header:
-   Example: `### Issue 1 (ROI: HIGH): 17 tests still failing at final run with no fix cycle triggered`
+   Example: `
+
+### Issue 1 (ROI: HIGH): 17 tests still failing at final run with no fix cycle triggered`
 
 5) For each issue, include a short "Why ROI" line (1 sentence) stating the main reason:
    Examples:
@@ -467,13 +469,14 @@ When producing this section:
 Each issue must follow this format:
 
 ```
+
 ### Issue N (ROI: <tier>): <Short title>
 
-**Problem:** <What was observed in this evaluation — cite specific test methods, error codes, or log entries>
+- **Problem:** <What was observed in this evaluation — cite specific test methods, error codes, or log entries>
 
-**Suggested fix:** <Concrete, implementable change the agent could make>
+- **Suggested fix:** <Concrete, implementable change the agent could make>
 
-**Why ROI:** <1 sentence — the main reason this issue merits its tier>
+- **Why ROI:** <1 sentence — the main reason this issue merits its tier>
 ```
 
 **Common patterns to look for (use only if evidenced):**
