@@ -15,6 +15,42 @@ Skills are reusable prompt-driven modules that teach Copilot how to perform spec
 - **Outputs** — what the skill produces (reports, files, analysis)
 - **Detailed instructions** — step-by-step logic Copilot follows to execute the task
 
+## Recommended Workflow
+
+The skills in this repo follow a natural pipeline. Use them in this order:
+
+```
+┌─────────────────────────┐     ┌─────────────────────────┐
+│  1. COLLECT ARTIFACTS   │     │  1. COLLECT ARTIFACTS   │
+│                         │     │                         │
+│  collect-test-          │     │  collect-test-          │
+│  testingagent-logs      │     │  copilot-logs           │
+└───────────┬─────────────┘     └───────────┬─────────────┘
+            │                               │
+            ▼                               ▼
+┌─────────────────────────┐     ┌─────────────────────────┐
+│  2. REVIEW INDIVIDUAL   │     │  2. REVIEW INDIVIDUAL   │
+│                         │     │                         │
+│  testing-agent-review   │     │  copilot-test-review    │
+└───────────┬─────────────┘     └───────────┬─────────────┘
+            │                               │
+            └───────────┬───────────────────┘
+                        ▼
+            ┌─────────────────────────┐
+            │  3. COMPARE SIDE-BY-SIDE│
+            │                         │
+            │  unit-test-comparison    │
+            └─────────────────────────┘
+```
+
+| Step | What to do | Skill |
+|------|-----------|-------|
+| **1. Collect** | Run your test generation tool (Testing Agent or Copilot), then collect all artifacts into a timestamped folder | `collect-test-testingagent-logs` or `collect-test-copilot-logs` |
+| **2. Review** | Analyze a single run — get a scored report with test quality assessment and suggested improvements | `testing-agent-review` or `copilot-test-review` |
+| **3. Compare** _(optional)_ | If you ran both tools on the same source, compare them side-by-side with a unified scoring table | `unit-test-comparison` |
+
+> **💡 Tip:** Steps 1 and 2 can be run independently. Step 3 requires artifacts from both tools targeting the same source file.
+
 ## Table of Contents
 
 ### Unit Test Log Collection Skills
