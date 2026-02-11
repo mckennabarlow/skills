@@ -4,8 +4,8 @@ description: >
   Run a Structured Case Study Review comparing the .NET Code Testing Agent and GH Copilot Agent Mode
   for unit test generation. Use this skill when asked to evaluate, compare, or assess test generation
   runs, analyze testing agent logs, or produce unit test evaluation reports. Trigger phrases include
-  "evaluate test run", "compare testing agent", "unit test comparison", "assess test quality",
-  "run test eval", "test generation comparison".
+  "compare test runs", "compare testing agent vs copilot", "unit test comparison",
+  "side-by-side evaluation", "test generation comparison", "testing agent vs copilot".
 ---
 
 # Unit Test Comparison Skill
@@ -193,7 +193,10 @@ During fix iterations, the agent may delete tests it cannot get to compile. Trac
 If the generated test file(s) are provided, read the actual test code and the target source file, then assess quality:
 
 - **Test file(s):** list the path(s) to the generated test file(s)
-- **Total test methods:** count of distinct `[TestMethod]` methods (note: parameterized `[DataRow]` tests count as one method with N cases)
+- **Total test methods:** count of distinct test methods — detect the test framework in use and count accordingly:
+  - **MSTest:** `[TestMethod]` methods (parameterized `[DataRow]` tests count as one method with N cases)
+  - **xUnit:** `[Fact]` and `[Theory]` methods (parameterized `[InlineData]` tests count as one method with N cases)
+  - **NUnit:** `[Test]` and `[TestCase]` methods (parameterized `[TestCase]` tests count as one method with N cases)
 - **Test classification:** categorize each test method into one of:
   - **Behavioral** — tests meaningful logic, branching, side effects, or return values based on different inputs/states
   - **Trivial** — tests something with near-zero chance of failing (e.g., constructor creates non-null instance, constant return value called multiple times)
@@ -241,6 +244,10 @@ If the generated test file(s) are provided, read the actual test code and the ta
 - **Final coverage:** note "N/A — no build/test validation performed" if applicable
 - **Coverage change:** difference or "Unknown — tests not validated"
 
+#### Coverage Artifact
+- **Coverage file:** full path to `coverage.cobertura.xml` if provided, otherwise note "Not provided"
+- **Notes:** mention whether the file was sourced from a separate test run or collected alongside the Copilot run
+
 #### Timeline
 - Use a table with `| Step | Event |` columns (use step numbers instead of timestamps if log has no timestamps)
 - Extract key events:
@@ -255,11 +262,19 @@ If the generated test file(s) are provided, read the actual test code and the ta
   - File lock warnings
   - Plan update errors
   - Follow-up user messages
+  - Build/test execution (if performed)
   - Memory nudges
 
 #### Errors & Warnings
 - Table with `| Severity | Description |` columns
 - Include all errors, warnings from the log
+- If no errors or warnings occurred, note "No errors or warnings" and skip the table
+
+#### Deleted Tests
+During editing cycles, Copilot may revise, replace, or remove test methods it previously generated. Track these by comparing earlier file edit states (visible in the log via `FileEditingState` entries) against the final test file.
+
+- **Table format:** `| Deleted Test Method | Reason (from log) | Could It Have Been Retained? |`
+- If no tests were deleted or replaced, note "No tests were deleted during editing cycles" and skip the table
 
 #### Analysis
 - Bullet points covering:
@@ -273,7 +288,7 @@ If the generated test file(s) are provided, read the actual test code and the ta
 If the generated test file(s) are provided, read the actual test code and the target source file, then assess quality. Use the same format as the Testing Agent report:
 
 - **Test file(s):** list the path(s)
-- **Total test methods:** count of distinct `[TestMethod]` methods
+- **Total test methods:** count of distinct test methods (detect framework: MSTest `[TestMethod]`, xUnit `[Fact]`/`[Theory]`, NUnit `[Test]`/`[TestCase]`)
 - **Classification table:** `| Test Method | Category | Notes |` — categorize each as Behavioral, Trivial, or Redundant
 - **Quality summary:** counts and percentage of Behavioral tests
 - **What's well done:** bullet points
@@ -488,7 +503,16 @@ This skill computes a **rubric score (0–100)** for **both** the Testing Agent 
 ### Rubric (0–100)
 *A deterministic score built from hard signals extracted from the run—coverage deltas, compile status, fix‑loop outcomes, log events, and the resulting test classifications.*
 
-Five dimensions (0–20 each): Correctness, Coverage Impact, Behavioral Depth, Test Design Quality, Stability & Reliability.
+Five dimensions (0–20 each):
+
+| Dimension | 0–5 | 6–10 | 11–15 | 16–20 |
+|-----------|-----|------|-------|-------|
+| **Correctness** | No tests compile or run | Some tests compile but most fail | Most tests pass with minor issues | All tests pass, no compilation errors |
+| **Coverage Impact** | No coverage change or decrease | <5pp coverage increase | 5–15pp coverage increase | >15pp coverage increase |
+| **Behavioral Depth** | All tests trivial or redundant | <30% behavioral tests | 30–60% behavioral tests | >60% behavioral, edge cases covered |
+| **Test Design Quality** | No AAA pattern, poor naming, no mocks | Inconsistent patterns, some mocks | Good AAA, proper mocks, minor gaps | Clean AAA, accurate mocks, negative cases |
+| **Stability & Reliability** | Agent crashed or hung, no output | Multiple fix loops, tests deleted | Minor fix iterations, all tests kept | Clean run, no fix loops needed |
+
 Inputs are derived from the log, coverage data, generated test files, and the Test Quality classification table.
 
 Compute a separate rubric score for each run.

@@ -40,6 +40,8 @@ A timestamped folder under `./artifacts/test-runs-copilot/<YYYYMMDD-HHMMSS>/` co
 | `coverage.cobertura.xml` | Cobertura XML code coverage report |
 | `copilot-output.log` | Most recent Copilot diagnostic log (automatic) |
 | `copilot-output.txt` | Manual Copilot output capture (if needed) |
+| `run-metadata.md` | Run metadata (tool, prompt, target, date, VS version) |
+| `*.Tests.cs` | Generated test file(s) copied from the repo |
 
 ---
 
@@ -157,7 +159,40 @@ if ($coverage) {
 }
 ```
 
-### Step 6: Verify and summarize
+### Step 6: Collect generated test files
+
+Ask the user which `.cs` test file(s) were generated during this Copilot run. Copy each file into the artifacts folder, preserving the original file name.
+
+```powershell
+# Ask the user for paths to generated test files
+# For each file provided:
+# Copy-Item $testFilePath (Join-Path $outDir (Split-Path $testFilePath -Leaf)) -Force
+```
+
+If the user cannot identify the generated files, note "Generated test files not collected — user could not identify them" and continue.
+
+### Step 7: Save Run Metadata
+
+Write the Run Metadata to a file so the `copilot-test-review` skill can pick it up automatically.
+
+```powershell
+$metadata = @"
+# Run Metadata
+
+| Field | Value |
+|-------|-------|
+| **Tool** | GitHub Copilot |
+| **Prompt** | $prompt |
+| **Target** | $target |
+| **Date/Time** | $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') |
+| **Visual Studio Version** | $vsVersion |
+"@
+$metadata | Out-File (Join-Path $outDir "run-metadata.md") -Encoding utf8
+```
+
+Substitute `$prompt`, `$target`, and `$vsVersion` with the values confirmed by the user in the Run Metadata step.
+
+### Step 8: Verify and summarize
 
 ```powershell
 Write-Host "Artifacts collected at: $outDir"
@@ -170,6 +205,8 @@ Verify these files exist:
 - `coverage.cobertura.xml`
 - `copilot-output.log` (if available)
 - `copilot-output.txt` (if manual capture was needed)
+- `run-metadata.md`
+- Generated `.cs` test file(s) (if collected)
 
 ---
 
