@@ -4,6 +4,8 @@ A collection of prototype [Copilot Skills](https://docs.github.com/en/copilot/co
 
 > **⚠️ Prototype Notice:** All skills in this repo are experimental prototypes. They are under active development, may change without notice, and are not intended for production use.
 
+> **📌 Current Scope:** This repo currently focuses on unit testing workflows — collecting artifacts, reviewing test quality, and comparing output from different test generation tools. The skill set may expand to cover other .NET development areas over time.
+
 ## What Are Skills?
 
 Skills are reusable prompt-driven modules that teach Copilot how to perform specialized tasks. Each skill lives in its own folder and contains a `SKILL.md` file that defines:
