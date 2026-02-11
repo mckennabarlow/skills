@@ -69,7 +69,7 @@ Before starting collection, ask the user to confirm the following metadata and r
 | **Prompt** | _(record the exact prompt passed to the Testing Agent, e.g., "Generate unit tests for MyClass.cs")_ |
 | **Target** | _(file, folder, project, or solution targeted)_ |
 | **Date/Time** | _(date and time of the run)_ |
-| **Visual Studio Version** | _(e.g., 17.14 Preview 3)_ |
+| **Visual Studio Version** | _(e.g., 18.5 Insiders)_ |
 
 ---
 
