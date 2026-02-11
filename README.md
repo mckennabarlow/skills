@@ -15,18 +15,25 @@ Skills are reusable prompt-driven modules that teach Copilot how to perform spec
 
 ## Table of Contents
 
-### Test Log Collection Skills
+### Unit Test Log Collection Skills
 
 | Skill | Description |
 |-------|-------------|
 | [`collect-test-copilot-logs`](#collect-test-copilot-logs) | Collects logs, source files, generated test files from a .NET repo, file, folder, project or solution from a Copilot prompt like: "Write unit tests for X" — captures TRX results, console output, Cobertura code coverage, and Copilot diagnostic logs from `%TEMP%\VSGitHubCopilotLogs` — all stored under a timestamped `test-runs-copilot/` artifacts folder |
 | [`collect-test-testingagent-logs`](#collect-test-testingagent-logs) | Collects logs, source files, generated test files from a .NET repo, file, folder, project or solution from a .NET Testing Agent prompt like: "@Test Write unit tests for X" — captures TRX results, console output, Cobertura code coverage, Copilot diagnostic logs, and .NET Testing Agent session logs from `%TEMP%\VSCodeTestingAgentLogs` — all stored under a timestamped `test-runs-testingagent/` artifacts folder |
 
-### Testing Agent Review Skill(s)
+### Unit Test Review Skills
 
 | Skill | Description |
 |-------|-------------|
-| [`test-agent-review`](#test-agent-review) | Analyze a .NET Testing Agent run — classifies test quality, scores across five dimensions (Correctness, Coverage Impact, Behavioral Depth, Test Design Quality, Stability & Reliability), and produces a detailed evaluation report |
+| [`testing-agent-review`](#testing-agent-review) | Analyze a single .NET Testing Agent run — classifies test quality, scores across five dimensions (Correctness, Coverage Impact, Behavioral Depth, Test Design Quality, Stability & Reliability), and produces a detailed evaluation report |
+| [`copilot-test-review`](#copilot-test-review) | Analyze a single GH Copilot Agent Mode test generation run — reviews the log, assesses generated test quality, scores across five dimensions, and produces a detailed evaluation report with ROI-prioritized suggested issues |
+
+### Unit Test Comparison Skills
+
+| Skill | Description |
+|-------|-------------|
+| [`unit-test-comparison`](#unit-test-comparison) | Run a structured case study review comparing the .NET Testing Agent and GH Copilot Agent Mode for unit test generation — produces individual evaluation reports for each run plus a side-by-side comparison with scoring, test quality assessment, and suggested issues |
 
 ## Skills
 
@@ -79,7 +86,7 @@ Collect Testing Agent and test logs for this repo
 
 ---
 
-### [`test-agent-review`](./test-agent-review/)
+### [`testing-agent-review`](./testing-agent-review/)
 
 **Analyze and evaluate a .NET Code Testing Agent run.**
 
@@ -106,6 +113,42 @@ Review the testing agent run in C:\path\to\TestingAgentFolder, source is C:\path
 
 The report is saved as a timestamped markdown file (e.g., `02062026-TestAgentReview-Run1/02062026-TestingAgent-eShop.md`).
 
+---
+
+### [`copilot-test-review`](./copilot-test-review/)
+
+**Analyze and evaluate a GH Copilot Agent Mode test generation run.**
+
+This skill reviews the output of a GH Copilot Agent Mode test generation run and produces a detailed markdown evaluation report. You provide a folder containing the Copilot log file and generated test files, along with the original source file that was targeted for test generation. The skill then:
+
+- **Reconstructs the run timeline** — extracts key events from the Copilot log (semantic search rounds, file edits, plan updates)
+- **Analyzes errors & warnings** — catalogs any errors, auth issues, or LSP failures from the log
+- **Classifies test quality** — categorizes every generated test method as Behavioral, Trivial, or Redundant by reading the test code against the original source file
+- **Scores the run** — computes a hybrid rubric + LLM-adjusted score (0–100) across five dimensions: Correctness, Coverage Impact, Behavioral Depth, Test Design Quality, and Stability & Reliability
+- **Suggests actionable issues** — proposes up to 10 concrete, ROI-prioritized improvements for the Copilot-assisted test generation workflow
+
+#### Quick Start
+
+```
+Review the copilot test run in C:\path\to\CopilotFolder, source file is C:\path\to\MyClass.cs
+```
+
+The report is saved as a timestamped markdown file (e.g., `02062026-CopilotTestReview-Run1/02062026-CopilotAgent-eShop.md`).
+
+---
+
+### [`unit-test-comparison`](./unit-test-comparison/)
+
+**Compare .NET Testing Agent and GH Copilot Agent Mode test generation runs side-by-side.**
+
+This skill runs a structured case study review comparing the .NET Testing Agent and GH Copilot Agent Mode for unit test generation. You provide artifacts from both tool runs and it produces three reports: one for each tool's run plus a side-by-side comparison with scoring, test quality assessment, and suggested issues.
+
+#### Quick Start
+
+```
+Compare testing agent run in C:\path\to\TestingAgentFolder against copilot run in C:\path\to\CopilotFolder
+```
+
 ## Using These Skills
 
 ### GitHub Copilot CLI
@@ -118,10 +161,10 @@ The Copilot CLI has built-in skill management via the `/skills` slash command.
    /skills add <path-to-skill-folder>
    ```
 
-   For example, to install `test-agent-review` after cloning this repo:
+   For example, to install `testing-agent-review` after cloning this repo:
 
    ```
-   /skills add C:\path\to\skills\test-agent-review
+   /skills add C:\path\to\skills\testing-agent-review
    ```
 
    This copies the `SKILL.md` into `~/.copilot/skills/<skill-name>/`.
@@ -135,13 +178,13 @@ The Copilot CLI has built-in skill management via the `/skills` slash command.
 3. **Get info about an installed skill:**
 
    ```
-   /skills info test-agent-review
+   /skills info testing-agent-review
    ```
 
 4. **Remove a skill:**
 
    ```
-   /skills remove test-agent-review
+   /skills remove testing-agent-review
    ```
 
 Once installed, simply use one of the skill's trigger phrases in your conversation and Copilot will automatically activate it.

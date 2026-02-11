@@ -1,11 +1,11 @@
 ---
-name: test-agent-review
+name: testing-agent-review
 description: >
   Analyze a single .NET Code Testing Agent run — review the log, assess generated test quality,
   and suggest concrete improvements. Use this skill when asked to review a testing agent run,
-  analyze testing agent output, assess testing agent tests, or review test agent logs.
-  Trigger phrases include "review testing agent", "analyze test agent", "assess test agent output",
-  "review test run", "test agent analysis".
+  analyze testing agent output, assess testing agent tests, or review testing agent logs.
+  Trigger phrases include "review testing agent", "analyze testing agent", "assess testing agent output",
+  "review testing agent run", "testing agent analysis".
 ---
 
 # .NET Testing Agent Review Skill
