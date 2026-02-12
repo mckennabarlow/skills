@@ -1,12 +1,12 @@
 # .NET Testing Agent — Issue Backlog
 
-> **Auto-generated** from 12 reports on 02/12/2026
+> **Auto-generated** from 13 reports on 02/12/2026
 > **Re-run with:** `extract issues from <report folder paths>`
 
 ## Summary
 
-- **Total unique issues:** 22
-- **HIGH ROI:** 7 | **MEDIUM ROI:** 10 | **LOW ROI:** 5
+- **Total unique issues:** 26
+- **HIGH ROI:** 9 | **MEDIUM ROI:** 11 | **LOW ROI:** 6
 - **Reports analyzed:**
   - Testing Agent Run 1 — netlandingpage (02/10/2026 - 174632)
   - Testing Agent Run 2 — netlandingpage (02/10/2026 - 210741)
@@ -19,6 +19,7 @@
   - Testing Agent Run 2 — ContosoUniversity/testingagent2 (02/12/2026)
   - Copilot Run 1 — ContosoUniversity/copilot2 (02/12/2026)
   - Comparison — ContosoUniversity (02/12/2026)
+  - Testing Agent Full Run — ContosoUniversity (02/12/2026)
 
 ---
 
@@ -75,14 +76,14 @@ Set expectations before reviewing the output:
 - **Observed in:** Testing Agent Run 1, Testing Agent Run 2, Comparison — netlandingpage (3 of 7 reports)
 - **Recurrence:** 2 of 2 netlandingpage Testing Agent runs; not hit in eShop (interface dependencies)
 
-### Issue 2 (ROI: HIGH) (🔺 1): Fix loop stall detection — agent spins indefinitely when failures share same root cause
+### Issue 2 (ROI: HIGH) (🔺 2): Fix loop stall detection — agent spins indefinitely when failures share same root cause
 
 - **Problem:** The Testing Agent ran 22 fix iterations, with the last 4 making zero progress (28→28→28→28). The agent consumed ~52 minutes of LLM compute on iterations 12–22 without reducing the failure count below 28.
 - **Fix location:** Testing Agent orchestrator
 - **Suggested fix:** Implement a stall detector: if 3 consecutive iterations produce no net reduction in failing tests, group remaining failures by root cause, report to user, and stop.
 - **Why ROI:** This is the single largest time waste observed — 52 minutes of invisible compute with no progress.
-- **Observed in:** Testing Agent Run 2, Comparison — netlandingpage (2 of 7 reports)
-- **Recurrence:** 1 of 3 Testing Agent runs (Run 2 netlandingpage)
+- **Observed in:** Testing Agent Run 2, Comparison — netlandingpage, TA Full Run — ContosoUniversity (3 of 13 reports)
+- **Recurrence:** 2 of 6 Testing Agent runs
 
 ### Issue 3 (ROI: HIGH) (🔺 1): Missing using directives cause CS0246 compilation failures
 
@@ -93,41 +94,59 @@ Set expectations before reviewing the output:
 - **Observed in:** Testing Agent Run 1 — netlandingpage (1 of 7 reports)
 - **Recurrence:** 1 of 3 Testing Agent runs
 
-### Issue 4 (ROI: HIGH) (🔺 1): Run duration exceeded 84 minutes — only 8 of 10 files processed
+### Issue 4 (ROI: HIGH) (🔺 2): Run duration exceeded 84 minutes — only 8 of 10 files processed
 
 - **Problem:** The agent ran for 1 hour 24 minutes and was still generating tests for DotnetReleaseService when cancelled. BackgroundTimerService and CarouselAutomationService were never processed.
 - **Fix location:** Testing Agent orchestrator
 - **Suggested fix:** Implement progress estimation and prioritize files by coverage gap (0% coverage files first). Files with 92%+ coverage should be deprioritized or skipped with a note.
 - **Why ROI:** Extremely long runs without visible progress cause users to cancel, losing all work in progress.
-- **Observed in:** Testing Agent Run 1 — netlandingpage (1 of 7 reports)
-- **Recurrence:** 1 of 3 Testing Agent runs
+- **Observed in:** Testing Agent Run 1 — netlandingpage, TA Full Run — ContosoUniversity (2 of 13 reports)
+- **Recurrence:** 2 of 6 Testing Agent runs
 
-### Issue 5 (ROI: HIGH) (🔺 1): No user-visible progress during fix iterations
+### Issue 5 (ROI: HIGH) (🔺 2): No user-visible progress during fix iterations
 
 - **Problem:** Each fix iteration takes 3–6 minutes with zero user-facing output. During iterations 12–22, the agent appeared completely frozen for 52 minutes.
 - **Fix location:** Testing Agent orchestrator
 - **Suggested fix:** Emit a progress message at the start of each fix iteration with current failure count. Also emit when a test is removed.
 - **Why ROI:** User confidence and informed cancellation decisions require visibility into what the agent is doing.
-- **Observed in:** Testing Agent Run 2 — netlandingpage (1 of 12 reports)
-- **Recurrence:** 1 of 5 Testing Agent runs
+- **Observed in:** Testing Agent Run 2 — netlandingpage, TA Full Run — ContosoUniversity (2 of 13 reports)
+- **Recurrence:** 2 of 6 Testing Agent runs
 
-### Issue 6 (ROI: HIGH) (🔺 2): Custom instruction files in `.github/instructions/` not discovered
+### Issue 6 (ROI: HIGH) (🔺 3): Custom instruction files in `.github/instructions/` not discovered
 
 - **Problem:** Both ContosoUniversity Testing Agent runs logged "No custom instruction files found" despite `.github/instructions/pre-run-testingagent-tests.instructions.md` existing in one repo. The agent's `Discovering custom instruction files` step checks the repository root but does not find the `.github/instructions/` folder.
 - **Fix location:** Testing Agent orchestrator
 - **Suggested fix:** The `Discovering custom instruction files` step should recursively search `.github/instructions/` from the repository root and load files matching `*.instructions.md` with `applyTo` frontmatter. These files contain test scenarios, mock setup guidance, and quality rules that would significantly improve generation quality.
 - **Why ROI:** Instruction files are the primary mechanism for users to pre-configure test generation — if silently ignored, the entire pre-run guidance pipeline is bypassed.
-- **Observed in:** TA Run 1 — ContosoUniversity/copilot, TA Run 2 — ContosoUniversity/testingagent2, Comparison — ContosoUniversity (3 of 12 reports)
-- **Recurrence:** 2 of 5 Testing Agent runs (both ContosoUniversity runs)
+- **Observed in:** TA Run 1 — ContosoUniversity/copilot, TA Run 2 — ContosoUniversity/testingagent2, Comparison — ContosoUniversity, TA Full Run — ContosoUniversity (4 of 13 reports)
+- **Recurrence:** 3 of 6 Testing Agent runs
 
-### Issue 7 (ROI: HIGH) (🔺 4): Excessive trivial tests generated for no-op methods
+### Issue 7 (ROI: HIGH) (🔺 5): Excessive trivial tests generated for no-op methods
 
 - **Problem:** The Testing Agent generated 9 trivial tests for ContosoUniversity's no-op methods: 3 MarkAsRead variants (positive ID, zero, negative) and 4 Dispose variants (single, multiple, after-send, using-statement) plus 1 constructor-not-null. These test empty method bodies that cannot fail. In the testingagent2 run, 7 of 24 tests (29.2%) were trivial.
 - **Fix location:** LLM prompt/model + Testing Agent orchestrator
 - **Suggested fix:** When the agent detects a method body is empty or contains only comments/no-ops, generate at most 1 "does not throw" test per method. Do not generate parameter variants for no-op methods. Consolidates prior Issues 16/17 (constructor-not-null, constant-value assertions).
 - **Why ROI:** Reduces trivial test inflation across all projects — no-op IDisposable and stub methods are extremely common in C# codebases.
-- **Observed in:** TA Run 1 — ContosoUniversity/copilot, TA Run 2 — ContosoUniversity/testingagent2, Comparison — ContosoUniversity, TA Run 1 — netlandingpage, TA Run 2 — netlandingpage (5 of 12 reports)
-- **Recurrence:** 4 of 5 Testing Agent runs
+- **Observed in:** TA Run 1 — ContosoUniversity/copilot, TA Run 2 — ContosoUniversity/testingagent2, Comparison — ContosoUniversity, TA Run 1 — netlandingpage, TA Run 2 — netlandingpage, TA Full Run — ContosoUniversity (6 of 13 reports)
+- **Recurrence:** 5 of 6 Testing Agent runs
+
+### Issue 8 (ROI: HIGH) (🔺 1): Moq setup on non-overridable DbSet properties causes systematic test failures
+
+- **Problem:** In the ContosoUniversity full-project run, `StudentsControllerTests`, `InstructorsControllerTests`, `DepartmentsControllerTests`, `DbInitializerTests`, and `SchoolContextFactoryTests` all use `Mock<SchoolContext>` with `Setup(c => c.Students)` on non-virtual `DbSet<T>` properties. This produces `System.NotSupportedException: Non-overridable members may not be used in setup / verification expressions`. 68 of 200 tests (34%) fail with this exact error. Meanwhile, `HomeControllerTests` in the same batch correctly uses `UseInMemoryDatabase`.
+- **Fix location:** LLM prompt/model + Testing Agent orchestrator + Roslyn analyzers
+- **Suggested fix:** Before generating mock setups for DbContext properties, check whether the target DbSet property is virtual. If not, fall back to `UseInMemoryDatabase` pattern. Decision tree: virtual DbSet → mock it; non-virtual DbSet → InMemory provider.
+- **Why ROI:** Single fix eliminates 100% of failures in this run. Non-virtual DbSet properties are the default in EF Core — this affects most EF Core projects.
+- **Observed in:** TA Full Run — ContosoUniversity (1 of 13 reports)
+- **Recurrence:** 1 of 6 Testing Agent runs
+
+### Issue 9 (ROI: HIGH) (🔺 1): Inconsistent mock strategy across files in the same batch
+
+- **Problem:** In the same run and batch, `HomeControllerTests` correctly uses `UseInMemoryDatabase` for `SchoolContext` (6/6 pass), while `StudentsControllerTests`, `InstructorsControllerTests`, `DepartmentsControllerTests` use `Mock<SchoolContext>` (all fail). The agent used two contradictory approaches for the same dependency within the same generation session.
+- **Fix location:** Testing Agent orchestrator
+- **Suggested fix:** When generating tests for multiple files that share a dependency, establish a consistent strategy for that dependency in the first file and propagate it to all subsequent files. If one file's approach passes during incremental test execution, adopt it as the canonical strategy.
+- **Why ROI:** Consistent strategy would have turned 66% pass rate into ~95%+ — prevents the same mistake from spreading across multiple test files.
+- **Observed in:** TA Full Run — ContosoUniversity (1 of 13 reports)
+- **Recurrence:** 1 of 6 Testing Agent runs
 
 ---
 
@@ -241,11 +260,29 @@ Set expectations before reviewing the output:
 - **Observed in:** TA Run 2 — ContosoUniversity/testingagent2, Comparison — ContosoUniversity (2 of 12 reports)
 - **Recurrence:** 1 of 5 Testing Agent runs
 
+### Issue 18 (ROI: MEDIUM) (🔺 1): LLM exceptions silently drop files without retry or notification
+
+- **Problem:** During the ContosoUniversity full-project run, `Global.asax.cs` at 01:26:57 and `InstructorsController.cs` at 01:30:55 both threw `UnretriableLLMCallException: VS Copilot response status indicates failure`. Both files were silently dropped — no retry, no fallback, no user notification. Run 2 later generated tests for `Global.asax.cs` successfully, proving the file was testable.
+- **Fix location:** Testing Agent orchestrator
+- **Suggested fix:** On LLM call failure, queue the file for a single retry after a delay (e.g., 30s). If the retry also fails, log a user-visible warning specifying which file was skipped and why.
+- **Why ROI:** `InstructorsController.cs` is one of the largest source files — silently dropping it loses significant test coverage.
+- **Observed in:** TA Full Run — ContosoUniversity (1 of 13 reports)
+- **Recurrence:** 1 of 6 Testing Agent runs
+
+### Issue 19 (ROI: MEDIUM) (🔺 1): No summary generated on cancellation — user gets no run report
+
+- **Problem:** Both runs in the ContosoUniversity full-project session ended with `Test generation canceled` → `Skipping summary generation. TestScenarioResult is null: True`. After 2.5 hours, the user received no summary of what was generated, what failed, or what coverage was achieved.
+- **Fix location:** Testing Agent orchestrator
+- **Suggested fix:** Even on cancellation, generate a partial summary with: (1) files tested, (2) test count, (3) pass/fail ratio, (4) coverage if collected. The `TestScenarioResult` being null shouldn't prevent a basic summary.
+- **Why ROI:** Users need to know what they got from a multi-hour run, especially when 34% of tests are failing.
+- **Observed in:** TA Full Run — ContosoUniversity (1 of 13 reports)
+- **Recurrence:** 1 of 6 Testing Agent runs
+
 ---
 
 ## LOW ROI
 
-### Issue 18 (ROI: LOW) (🔺 1): Neither tool tests exception propagation from repository
+### Issue 20 (ROI: LOW) (🔺 1): Neither tool tests exception propagation from repository
 
 - **Problem:** `DeleteBasket` and `UpdateBasket` call repository methods without try/catch. Neither tool generated a test verifying repository exceptions propagate correctly.
 - **Fix location:** LLM prompt/model
@@ -254,7 +291,7 @@ Set expectations before reviewing the output:
 - **Observed in:** Testing Agent eShop, Copilot eShop, Comparison eShop (3 of 12 reports)
 - **Recurrence:** 1 of 5 Testing Agent runs (eShop)
 
-### Issue 19 (ROI: LOW) (🔺 3): Constructor-not-null trivial tests
+### Issue 21 (ROI: LOW) (🔺 3): Constructor-not-null trivial tests
 
 - **Problem:** `Constructor_WithValidParameters_InitializesService()` tests just assert the constructor doesn't throw and instance is not null. Merged into Issue 7 for ContosoUniversity, but still appears independently in netlandingpage runs.
 - **Fix location:** LLM prompt/model
@@ -263,7 +300,7 @@ Set expectations before reviewing the output:
 - **Observed in:** Testing Agent Run 1, Testing Agent Run 2 — netlandingpage, TA Run 2 — ContosoUniversity (3 of 12 reports)
 - **Recurrence:** 3 of 5 Testing Agent runs
 
-### Issue 20 (ROI: LOW) (🔺 2): Constant-value assertion tests in DotnetReleaseServiceTests
+### Issue 22 (ROI: LOW) (🔺 2): Constant-value assertion tests in DotnetReleaseServiceTests
 
 - **Problem:** 4 tests assert public constants equal hardcoded values. Zero regression protection.
 - **Fix location:** LLM prompt/model
@@ -272,7 +309,7 @@ Set expectations before reviewing the output:
 - **Observed in:** Testing Agent Run 1, Testing Agent Run 2 — netlandingpage (2 of 12 reports)
 - **Recurrence:** 2 of 5 Testing Agent runs
 
-### Issue 21 (ROI: LOW) (🔺 1): Neither tool tests CancellationToken handling
+### Issue 23 (ROI: LOW) (🔺 1): Neither tool tests CancellationToken handling
 
 - **Problem:** `ServerCallContext` includes a `CancellationToken` property. Neither tool generated tests for cancellation scenarios.
 - **Fix location:** LLM prompt/model
@@ -281,7 +318,7 @@ Set expectations before reviewing the output:
 - **Observed in:** Comparison — eShop (1 of 12 reports)
 - **Recurrence:** 1 of 5 Testing Agent runs (eShop)
 
-### Issue 22 (ROI: LOW) (🔺 2): Missing `GenerateMessage` default switch arm test
+### Issue 24 (ROI: LOW) (🔺 2): Missing `GenerateMessage` default switch arm test
 
 - **Problem:** The `GenerateMessage` method has a `_ => $"{displayText} operation: {operation}"` default case in its switch expression. No test covers this branch. While C# enums make it unlikely to hit in normal use, it's reachable via future enum additions or casting.
 - **Fix location:** LLM prompt/model
