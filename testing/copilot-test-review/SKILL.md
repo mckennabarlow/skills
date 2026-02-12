@@ -110,6 +110,7 @@ Extract `<ProjectName>` from the log — use the solution name, repo folder name
 - **Date/Time:** date and time of the run (extract from log timestamps if available)
 - **Visual Studio Version:** (ask the user if not present in the log, e.g., `17.14 Preview 3`)
 - **Model:** the LLM model used (ask the user if not present in the log)
+- **Copilot Instructions:** check whether a custom instructions file was detected or used during the run. Look for any of these in the target repo or log: `.github/copilot-instructions.md`, `.github/instructions/*.instructions.md`, `.copilot/` folder with custom instructions, or references to custom instructions in the log. Note the file path(s) if found, or "None detected" if not.
 - **Log file:** full path
 - **Total duration:** extract from timestamps if available; note "Unknown (log lacks per-line timestamps)" if not
 - **LLM usage:** extract from the log:
