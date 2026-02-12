@@ -87,6 +87,10 @@ For each report, find all `### Issue N` sections and extract:
 | Why ROI | Text after `**Why ROI:**` |
 | Source report | The file name and path of the report |
 
+### Step 2b: Exclude Non-Actionable Issues
+
+Skip any extracted issue whose title or problem text is primarily about missing or not finding Copilot custom instructions files (e.g., `.github/copilot-instructions.md`, `.github/instructions/*.instructions.md`, `.copilot/` instructions). These are environment-specific observations, not tool defects or improvements.
+
 ### Step 3: Classify Tool Owner
 
 Assign each issue a `tool_owner` based on the fix location and source report:
