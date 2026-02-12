@@ -128,11 +128,15 @@ For each dedup group, select the **best version** of the issue text using this p
 
 Shared issues appear in **both** backlogs.
 
-### Step 6: Sort
+### Step 6: Sort and Upvote
 
 Within each backlog, sort by:
 1. **ROI tier** — HIGH first, then MEDIUM, then LOW
 2. **Recurrence count** (descending) — issues seen across more reports rank higher within the same tier
+
+**Upvote count in header:** Include the recurrence count as `(🔺 N)` in each issue header, where N is the number of distinct tool runs that encountered this issue. Each new run that exhibits the same issue ticks up the count by 1. A comparison report echoing a finding from an individual review does not add a new count — only distinct runs do.
+
+**Format:** `### Issue N (ROI: <tier>) (🔺 <count>): <Title>`
 
 ### Step 7: Archive Previous Backlogs
 
@@ -210,7 +214,7 @@ Before running, decide:
 
 ## HIGH ROI
 
-### Issue 1 (ROI: HIGH): <Title>
+### Issue 1 (ROI: HIGH) (🔺 3): <Title>
 
 - **Problem:** <Merged description citing specific evidence>
 - **Fix location:** <Location>
@@ -219,7 +223,7 @@ Before running, decide:
 - **Observed in:** <List of reports> (N of M reports)
 - **Recurrence:** <How many runs exhibited this>
 
-### Issue 2 (ROI: HIGH): ...
+### Issue 2 (ROI: HIGH) (🔺 1): ...
 
 ---
 
