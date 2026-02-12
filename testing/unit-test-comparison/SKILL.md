@@ -72,7 +72,10 @@ You will be provided:
 - **File matching** — use the folder each file lives in to determine which run produced it (Testing Agent vs. Copilot). Do not rely on file names to distinguish runs. If one folder contains files not present in the other, ignore the extra files — only evaluate files that are common to both or relevant to that run's own report.
 - **Model used** — ask the user which LLM model was used for each run (e.g., GPT-4o, Claude 3.5 Sonnet, etc.). Include this in the run metadata for both reports and in the comparison table.
 - **Target source file** — the original `.cs` source file that was targeted for test generation. Ask the user for the file path. If not provided, extract the path from the log content (look for `#file:` mentions in the prompt or `Mapped source file` entries). Read this file to understand the actual API surface, branches, constructors, and logic — this is essential for accurate test quality classification and coverage gap analysis.
-- **Output directory** — ask the user where to save the reports. Default is the same folder as the Testing Agent input folder. Offer the option to pick a different folder.
+- **Output directory** — present the default location to the user and ask them to confirm or pick a different folder. Remember their choice for future runs of this skill.
+  - **Default:** the same folder as the Testing Agent input folder
+  - **Confirm:** "I'll save the reports to `<default path>`. Is that OK, or would you prefer a different location?"
+  - **Remember:** If the user picks a custom location, store it and use it as the new default for subsequent runs. If they confirm the default, continue using it.
 
 ---
 
