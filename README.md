@@ -20,6 +20,14 @@ Skills are reusable prompt-driven modules that teach Copilot how to perform spec
 The skills in this repo follow a natural pipeline. Use them in this order:
 
 ```
+            ┌─────────────────────────┐
+            │  0. PRE-RUN ANALYSIS    │
+            │                         │
+            │  pre-run-analysis       │
+            └───────────┬─────────────┘
+                        │
+            ┌───────────┴───────────────────┐
+            ▼                               ▼
 ┌─────────────────────────┐     ┌─────────────────────────┐
 │  1. COLLECT ARTIFACTS   │     │  1. COLLECT ARTIFACTS   │
 │                         │     │                         │
@@ -40,18 +48,33 @@ The skills in this repo follow a natural pipeline. Use them in this order:
             │  3. COMPARE SIDE-BY-SIDE│
             │                         │
             │  unit-test-comparison    │
+            └───────────┬─────────────┘
+                        │
+                        ▼
+            ┌─────────────────────────┐
+            │  4. EXTRACT & PRIORITIZE│
+            │                         │
+            │  extract-issues          │
             └─────────────────────────┘
 ```
 
 | Step | What to do | Skill |
 |------|-----------|-------|
+| **0. Analyze** | Before running any tool, analyze the target source for blockers, map the testable surface, and set a quality bar | `pre-run-analysis` |
 | **1. Collect** | Run your test generation tool (Testing Agent or Copilot), then collect all artifacts into a timestamped folder | `collect-test-testingagent-logs` or `collect-test-copilot-logs` |
 | **2. Review** | Analyze a single run — get a scored report with test quality assessment and suggested improvements | `testing-agent-review` or `copilot-test-review` |
 | **3. Compare** _(optional)_ | If you ran both tools on the same source, compare them side-by-side with a unified scoring table | `unit-test-comparison` |
+| **4. Extract** _(optional)_ | Pull all issues from review/comparison reports into two prioritized, deduplicated backlogs | `extract-issues` |
 
-> **💡 Tip:** Steps 1 and 2 can be run independently. Step 3 requires artifacts from both tools targeting the same source file.
+> **💡 Tip:** Step 0 can be run independently before any test generation. Steps 1 and 2 can be run independently. Step 3 requires artifacts from both tools targeting the same source file.
 
 ## Table of Contents
+
+### Pre-Run Analysis Skills
+
+| Skill | Description |
+|-------|-------------|
+| [`pre-run-analysis`](#pre-run-analysis) | Analyze a .NET project before running any test generation tool — detects blockers (sealed classes, CPM, build failures), maps the testable surface, generates tailored prompts, and sets a quality bar. Works in VS Code, Visual Studio, and Copilot CLI. |
 
 ### Unit Test Log Collection Skills
 
@@ -73,7 +96,42 @@ The skills in this repo follow a natural pipeline. Use them in this order:
 |-------|-------------|
 | [`unit-test-comparison`](#unit-test-comparison) | Run a structured case study review comparing the .NET Testing Agent and GH Copilot Agent Mode for unit test generation — produces individual evaluation reports for each run plus a side-by-side comparison with scoring, test quality assessment, and suggested issues |
 
+### Issue Extraction Skills
+
+| Skill | Description |
+|-------|-------------|
+| [`extract-issues`](#extract-issues) | Extract, deduplicate, and prioritize issues from review and comparison reports into two sorted backlog markdowns — one for the Testing Agent and one for Copilot Agent. Archives previous backlogs to a `history\` subfolder before regenerating. |
+
 ## Skills
+
+### [`pre-run-analysis`](./pre-run-analysis/)
+
+**Analyze a .NET project before running test generation — detect blockers, map the testable surface, and set a quality bar.**
+
+This skill is the "step 0" of the pipeline. Run it before launching either the Testing Agent or Copilot Agent Mode. It:
+
+- **Detects blockers** — sealed classes, static dependencies, CPM conflicts, build failures
+- **Flags warnings** — no test project, large file count, missing mock framework, high existing coverage
+- **Maps the testable surface** — public methods, branches, edge cases, exception paths → a scenario table defining what "complete" looks like
+- **Generates tailored prompts** — ready-to-use prompts for both tools, incorporating constraints and known gotchas
+- **Sets a quality bar** — expected test count, behavioral %, negative assertions, coverage targets
+- **Works everywhere** — VS Code, Visual Studio, and Copilot CLI (no environment-specific APIs)
+
+The skill encodes all known issue patterns from prior evaluation runs (18 Testing Agent issues, 12 Copilot issues across 7 reports).
+
+#### Quick Start
+
+```
+Pre-run analysis for C:\path\to\MyService.cs
+```
+
+```
+Analyze before testing C:\path\to\src\Services\
+```
+
+If no test project is detected, the skill skips test-project checks and recommends creating one with suggested framework/mock library choices.
+
+---
 
 ### [`collect-test-copilot-logs`](./collect-test-copilot-logs/)
 
@@ -185,6 +243,30 @@ This skill runs a structured case study review comparing the .NET Testing Agent 
 
 ```
 Compare testing agent run in C:\path\to\TestingAgentFolder against copilot run in C:\path\to\CopilotFolder
+```
+
+---
+
+### [`extract-issues`](./extract-issues/)
+
+**Extract, deduplicate, and prioritize issues from review reports into actionable backlogs.**
+
+This skill reads all review and comparison reports from one or more folders, extracts every suggested issue, deduplicates by theme, and produces two prioritized backlog markdowns — one for the Testing Agent team and one for the Copilot Agent team. Shared issues (e.g., sealed class handling, negative mock verification) appear in both backlogs.
+
+Key features:
+- **Deduplication** — groups issues that describe the same root problem across multiple reports
+- **Recurrence tracking** — issues seen across more runs rank higher within the same ROI tier
+- **Versioning** — archives previous backlogs to `history\` before overwriting, so you always have one clean file plus full history
+- **Re-sortable** — every time you run it, issues are re-sorted by ROI priority and recurrence
+
+#### Quick Start
+
+```
+Extract issues from C:\path\to\Evaluations
+```
+
+```
+Build a backlog from these reports: C:\path\to\folder1 C:\path\to\folder2
 ```
 
 ## Using These Skills
