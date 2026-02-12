@@ -68,10 +68,7 @@ You will be provided:
 - **Coverage artifact (optional)** — a `coverage.cobertura.xml` file captured during the run. If missing, ask the user whether they can collect coverage using the standard test run with `--collect "XPlat Code Coverage"` and copy the resulting coverage file into the run artifacts folder.
 - **Model used** — ask the user which LLM model was used for the run (e.g., GPT-4o, Claude 3.5 Sonnet, GPT-5.2-Codex, etc.). Include this in the run metadata.
 - **Target source file** — the original `.cs` source file that was targeted for test generation. Ask the user for the file path. If not provided, extract the path from the log content (look for `#file:` mentions in the prompt or `Mapped source file` entries). Read this file to understand the actual API surface, branches, constructors, and logic — this is essential for accurate test quality classification, coverage gap analysis, and assessing whether deleted tests could have been salvaged.
-- **Output directory** — present the default location to the user and ask them to confirm or pick a different folder. Remember their choice for future runs of this skill.
-  - **Default:** the same folder as the Testing Agent input folder
-  - **Confirm:** "I'll save the report to `<default path>`. Is that OK, or would you prefer a different location?"
-  - **Remember:** If the user picks a custom location, store it and use it as the new default for subsequent runs. If they confirm the default, continue using it.
+- **Output directory** — ask the user where to save the report. Default is the same folder as the Testing Agent input folder. Offer the option to pick a different folder.
 
 ---
 

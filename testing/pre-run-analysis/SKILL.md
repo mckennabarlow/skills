@@ -66,10 +66,7 @@ You will be provided:
 - **Target source file(s)** — the `.cs` file(s) or folder of source files to analyze. If a folder is provided, analyze all `.cs` files in the folder (excluding generated files, `obj/`, `bin/`, and `*.g.cs`).
 - **Repo root / solution** — ask the user for the repo root or `.sln` path if not obvious from context. Needed to find `.csproj`, `Directory.Packages.props`, and existing test projects.
 - **Which tool(s) will be used** — ask: "Will you run the Testing Agent, Copilot Agent Mode, or both?" This determines which tool-specific checks to include.
-- **Output directory** — present the default location to the user and ask them to confirm or pick a different folder. Remember their choice for future runs of this skill.
-  - **Default:** `./artifacts/pre-run/` under the repo root
-  - **Confirm:** "I'll save the checklist to `<default path>`. Is that OK, or would you prefer a different location?"
-  - **Remember:** If the user picks a custom location, store it and use it as the new default for subsequent runs. If they confirm the default, continue using it.
+- **Output directory** — ask the user where to save the checklist. Default: `./artifacts/pre-run/` under the repo root. Offer alternatives.
 
 ---
 

@@ -62,10 +62,7 @@ Given one or more review/comparison reports, extract all suggested issues, dedup
   - `*-TestingAgent-*.md` (Testing Agent review reports)
   - `*-CopilotAgent-*.md` (Copilot review reports)
   - `*-UnitTestEvaluation-*.md` (Comparison reports)
-- **Output directory** — present the default location to the user and ask them to confirm or pick a different folder. Remember their choice for future runs of this skill.
-  - **Default:** the same folder as the report input folder(s)
-  - **Confirm:** "I'll save the backlog files to `<default path>`. Is that OK, or would you prefer a different location?"
-  - **Remember:** If the user picks a custom location, store it and use it as the new default for subsequent runs. If they confirm the default, continue using it.
+- **Output directory** — ask the user where to save the backlog files. Do not hardcode a path.
 
 ---
 
