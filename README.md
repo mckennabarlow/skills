@@ -1,10 +1,8 @@
-# .NET Unit Testing Skills
+# Copilot Skills
 
-A collection of prototype [Copilot Skills](https://docs.github.com/en/copilot/copilot-extensions/copilot-skills) for reviewing and comparing unit test output from the .NET Testing Agent and GH Copilot Agent Mode. These skills extend GitHub Copilot CLI with capabilities for collecting test artifacts, analyzing test quality, and producing structured evaluation reports.
+A collection of prototype [Copilot Skills](https://docs.github.com/en/copilot/copilot-extensions/copilot-skills) that extend GitHub Copilot CLI with specialized capabilities. Skills are organized by category, with each category in its own folder.
 
 > **⚠️ Prototype Notice:** All skills in this repo are experimental prototypes. They are under active development, may change without notice, and are not intended for production use.
-
-> **📌 Current Scope:** This repo currently focuses on unit testing workflows — collecting artifacts, reviewing test quality, and comparing output from different test generation tools. The skill set may expand to cover other .NET development areas over time.
 
 ## What Are Skills?
 
@@ -15,259 +13,40 @@ Skills are reusable prompt-driven modules that teach Copilot how to perform spec
 - **Outputs** — what the skill produces (reports, files, analysis)
 - **Detailed instructions** — step-by-step logic Copilot follows to execute the task
 
-## Recommended Workflow
-
-The skills in this repo follow a natural pipeline. Use them in this order:
+## Repo Structure
 
 ```
-            ┌─────────────────────────┐
-            │  0. PRE-RUN ANALYSIS    │
-            │                         │
-            │  pre-run-analysis       │
-            └───────────┬─────────────┘
-                        │
-            ┌───────────┴───────────────────┐
-            ▼                               ▼
-┌─────────────────────────┐     ┌─────────────────────────┐
-│  1. COLLECT ARTIFACTS   │     │  1. COLLECT ARTIFACTS   │
-│                         │     │                         │
-│  collect-test-          │     │  collect-test-          │
-│  testingagent-logs      │     │  copilot-logs           │
-└───────────┬─────────────┘     └───────────┬─────────────┘
-            │                               │
-            ▼                               ▼
-┌─────────────────────────┐     ┌─────────────────────────┐
-│  2. REVIEW INDIVIDUAL   │     │  2. REVIEW INDIVIDUAL   │
-│                         │     │                         │
-│  testing-agent-review   │     │  copilot-test-review    │
-└───────────┬─────────────┘     └───────────┬─────────────┘
-            │                               │
-            └───────────┬───────────────────┘
-                        ▼
-            ┌─────────────────────────┐
-            │  3. COMPARE SIDE-BY-SIDE│
-            │                         │
-            │  unit-test-comparison    │
-            └───────────┬─────────────┘
-                        │
-                        ▼
-            ┌─────────────────────────┐
-            │  4. EXTRACT & PRIORITIZE│
-            │                         │
-            │  extract-issues          │
-            └─────────────────────────┘
+skills/
+├── README.md              ← you are here
+├── testing/               ← .NET unit testing skills
+│   ├── README.md
+│   ├── pre-run-analysis/
+│   ├── collect-test-copilot-logs/
+│   ├── collect-test-testingagent-logs/
+│   ├── copilot-test-review/
+│   ├── testing-agent-review/
+│   ├── unit-test-comparison/
+│   └── extract-issues/
+└── <future-category>/     ← add new categories here
 ```
 
-| Step | What to do | Skill |
-|------|-----------|-------|
-| **0. Analyze** | Before running any tool, analyze the target source for blockers, map the testable surface, and set a quality bar | `pre-run-analysis` |
-| **1. Collect** | Run your test generation tool (Testing Agent or Copilot), then collect all artifacts into a timestamped folder | `collect-test-testingagent-logs` or `collect-test-copilot-logs` |
-| **2. Review** | Analyze a single run — get a scored report with test quality assessment and suggested improvements | `testing-agent-review` or `copilot-test-review` |
-| **3. Compare** _(optional)_ | If you ran both tools on the same source, compare them side-by-side with a unified scoring table | `unit-test-comparison` |
-| **4. Extract** _(optional)_ | Pull all issues from review/comparison reports into two prioritized, deduplicated backlogs | `extract-issues` |
+## Skill Categories
 
-> **💡 Tip:** Step 0 can be run independently before any test generation. Steps 1 and 2 can be run independently. Step 3 requires artifacts from both tools targeting the same source file.
+### [Testing](./testing/)
 
-## Table of Contents
-
-### Pre-Run Analysis Skills
+Skills for reviewing and comparing .NET unit test output from the .NET Testing Agent and GH Copilot Agent Mode. Includes artifact collection, test quality analysis, side-by-side comparison, and issue extraction.
 
 | Skill | Description |
 |-------|-------------|
-| [`pre-run-analysis`](#pre-run-analysis) | Analyze a .NET project before running any test generation tool — detects blockers (sealed classes, CPM, build failures), maps the testable surface, generates tailored prompts, and sets a quality bar. Works in VS Code, Visual Studio, and Copilot CLI. |
-
-### Unit Test Log Collection Skills
-
-| Skill | Description |
-|-------|-------------|
-| [`collect-test-copilot-logs`](#collect-test-copilot-logs) | Collects logs, source files, generated test files from a .NET repo, file, folder, project or solution from a Copilot prompt like: "Write unit tests for X" — captures TRX results, console output, Cobertura code coverage, and Copilot diagnostic logs from `%TEMP%\VSGitHubCopilotLogs` — all stored under a timestamped `test-runs-copilot/` artifacts folder |
-| [`collect-test-testingagent-logs`](#collect-test-testingagent-logs) | Collects logs, source files, generated test files from a .NET repo, file, folder, project or solution from a .NET Testing Agent prompt like: "@Test Write unit tests for X" — captures TRX results, console output, Cobertura code coverage, Copilot diagnostic logs, and .NET Testing Agent session logs from `%TEMP%\VSCodeTestingAgentLogs` — all stored under a timestamped `test-runs-testingagent/` artifacts folder |
-
-### Unit Test Review Skills
-
-| Skill | Description |
-|-------|-------------|
-| [`testing-agent-review`](#testing-agent-review) | Analyze a single .NET Testing Agent run — classifies test quality, scores across five dimensions (Correctness, Coverage Impact, Behavioral Depth, Test Design Quality, Stability & Reliability), and produces a detailed evaluation report |
-| [`copilot-test-review`](#copilot-test-review) | Analyze a single GH Copilot Agent Mode test generation run — reviews the log, assesses generated test quality, scores across five dimensions, and produces a detailed evaluation report with ROI-prioritized suggested issues |
-
-### Unit Test Comparison Skills
-
-| Skill | Description |
-|-------|-------------|
-| [`unit-test-comparison`](#unit-test-comparison) | Run a structured case study review comparing the .NET Testing Agent and GH Copilot Agent Mode for unit test generation — produces individual evaluation reports for each run plus a side-by-side comparison with scoring, test quality assessment, and suggested issues |
-
-### Issue Extraction Skills
-
-| Skill | Description |
-|-------|-------------|
-| [`extract-issues`](#extract-issues) | Extract, deduplicate, and prioritize issues from review and comparison reports into two sorted backlog markdowns — one for the Testing Agent and one for Copilot Agent. Archives previous backlogs to a `history\` subfolder before regenerating. |
-
-## Skills
-
-### [`pre-run-analysis`](./pre-run-analysis/)
-
-**Analyze a .NET project before running test generation — detect blockers, map the testable surface, and set a quality bar.**
-
-This skill is the "step 0" of the pipeline. Run it before launching either the Testing Agent or Copilot Agent Mode. It:
-
-- **Detects blockers** — sealed classes, static dependencies, CPM conflicts, build failures
-- **Flags warnings** — no test project, large file count, missing mock framework, high existing coverage
-- **Maps the testable surface** — public methods, branches, edge cases, exception paths → a scenario table defining what "complete" looks like
-- **Generates tailored prompts** — ready-to-use prompts for both tools, incorporating constraints and known gotchas
-- **Sets a quality bar** — expected test count, behavioral %, negative assertions, coverage targets
-- **Works everywhere** — VS Code, Visual Studio, and Copilot CLI (no environment-specific APIs)
-
-The skill encodes all known issue patterns from prior evaluation runs (18 Testing Agent issues, 12 Copilot issues across 7 reports).
-
-#### Quick Start
-
-```
-Pre-run analysis for C:\path\to\MyService.cs
-```
-
-```
-Analyze before testing C:\path\to\src\Services\
-```
-
-If no test project is detected, the skill skips test-project checks and recommends creating one with suggested framework/mock library choices.
-
----
-
-### [`collect-test-copilot-logs`](./collect-test-copilot-logs/)
-
-**Capture GitHub Copilot and testing logs after a test run.**
-
-This skill automates the collection of test artifacts and Copilot diagnostic logs from a .NET repository. Place the instructions file at the repo root and it will:
-
-- **Run all tests** in the repo (solution-level if a `.sln` exists) with TRX logging and code coverage collection
-- **Capture console output** — redirects all test output to a file
-- **Collect Copilot logs** — automatically copies the most recent log from `%TEMP%\VSGitHubCopilotLogs`
-- **Collect code coverage** — locates and copies the Cobertura XML report
-- **Prompt for manual confirmation** — reminds the user to verify the Copilot log matches the current session
-
-All artifacts are stored under `./artifacts/test-runs-copilot/<YYYYMMDD-HHMMSS>/`.
-
-#### Quick Start
-
-Copy `collect-copilot-logs-instructions.md` to the root of your .NET repository and follow the steps inside, or invoke via Copilot:
-
-```
-Collect Copilot and test logs for this repo
-```
-
----
-
-### [`collect-test-testingagent-logs`](./collect-test-testingagent-logs/)
-
-**Capture .NET Testing Agent and testing logs after a test run.**
-
-This skill automates the collection of test artifacts, Copilot diagnostic logs, and .NET Testing Agent logs from a .NET repository. Place the instructions file at the repo root and it will:
-
-- **Run all tests** in the repo (solution-level if a `.sln` exists) with TRX logging and code coverage collection
-- **Capture console output** — redirects all test output to a file
-- **Collect Copilot logs** — automatically copies the most recent log from `%TEMP%\VSGitHubCopilotLogs`
-- **Collect Testing Agent logs** — copies the most recently created subfolder from `%TEMP%\VSCodeTestingAgentLogs` into a `testingagent-logs/` folder
-- **Collect code coverage** — locates and copies the Cobertura XML report
-- **Prompt for manual confirmation** — reminds the user to verify the Copilot log matches the current session
-
-All artifacts are stored under `./artifacts/test-runs-testingagent/<YYYYMMDD-HHMMSS>/`.
-
-#### Quick Start
-
-Copy `collect-testingagent-logs-instructions.md` to the root of your .NET repository and follow the steps inside, or invoke via Copilot:
-
-```
-Collect Testing Agent and test logs for this repo
-```
-
----
-
-### [`testing-agent-review`](./testing-agent-review/)
-
-**Analyze and evaluate a .NET Code Testing Agent run.**
-
-This skill reviews the output of a [.NET Testing Agent](https://learn.microsoft.com/en-us/visualstudio/test/unit-testing-with-github-copilot-test-dotnet?view=visualstudio) run and produces a detailed markdown evaluation report. You provide a folder containing the agent's log file and generated test files, along with the original source file or folder of source code that was targeted for test generation. The skill then:
-
-- **Reconstructs the run timeline** — extracts key events, durations, and milestones from the agent log
-- **Analyzes compilation errors** — catalogs C# error codes and explains root causes
-- **Tracks deleted tests** — identifies tests the agent generated but later removed during fix iterations, and assesses whether they could have been salvaged
-- **Classifies test quality** — categorizes every generated test method as Behavioral, Trivial, or Redundant by reading the test code against the original source file
-- **Scores the run** — computes a hybrid rubric + LLM-adjusted score (0–100) across five dimensions: Correctness, Coverage Impact, Behavioral Depth, Test Design Quality, and Stability & Reliability
-- **Suggests actionable issues** — proposes up to 10 concrete, ROI-prioritized improvements that can be logged as issues against the Testing Agent to help improve its behavior over time
-
-#### Quick Start
-
-```
-Review the testing agent run in C:\path\to\TestingAgentFolder, source file is C:\path\to\MyClass.cs
-```
-
-or with a folder of source files:
-
-```
-Review the testing agent run in C:\path\to\TestingAgentFolder, source is C:\path\to\src\MyProject
-```
-
-The report is saved as a timestamped markdown file (e.g., `02062026-TestAgentReview-Run1/02062026-TestingAgent-eShop.md`).
-
----
-
-### [`copilot-test-review`](./copilot-test-review/)
-
-**Analyze and evaluate a GH Copilot Agent Mode test generation run.**
-
-This skill reviews the output of a GH Copilot Agent Mode test generation run and produces a detailed markdown evaluation report. You provide a folder containing the Copilot log file and generated test files, along with the original source file that was targeted for test generation. The skill then:
-
-- **Reconstructs the run timeline** — extracts key events from the Copilot log (semantic search rounds, file edits, plan updates)
-- **Analyzes errors & warnings** — catalogs any errors, auth issues, or LSP failures from the log
-- **Classifies test quality** — categorizes every generated test method as Behavioral, Trivial, or Redundant by reading the test code against the original source file
-- **Scores the run** — computes a hybrid rubric + LLM-adjusted score (0–100) across five dimensions: Correctness, Coverage Impact, Behavioral Depth, Test Design Quality, and Stability & Reliability
-- **Suggests actionable issues** — proposes up to 10 concrete, ROI-prioritized improvements for the Copilot-assisted test generation workflow
-
-#### Quick Start
-
-```
-Review the copilot test run in C:\path\to\CopilotFolder, source file is C:\path\to\MyClass.cs
-```
-
-The report is saved as a timestamped markdown file (e.g., `02062026-CopilotTestReview-Run1/02062026-CopilotAgent-eShop.md`).
-
----
-
-### [`unit-test-comparison`](./unit-test-comparison/)
-
-**Compare .NET Testing Agent and GH Copilot Agent Mode test generation runs side-by-side.**
-
-This skill runs a structured case study review comparing the .NET Testing Agent and GH Copilot Agent Mode for unit test generation. You provide artifacts from both tool runs and it produces three reports: one for each tool's run plus a side-by-side comparison with scoring, test quality assessment, and suggested issues.
-
-#### Quick Start
-
-```
-Compare testing agent run in C:\path\to\TestingAgentFolder against copilot run in C:\path\to\CopilotFolder
-```
-
----
-
-### [`extract-issues`](./extract-issues/)
-
-**Extract, deduplicate, and prioritize issues from review reports into actionable backlogs.**
-
-This skill reads all review and comparison reports from one or more folders, extracts every suggested issue, deduplicates by theme, and produces two prioritized backlog markdowns — one for the Testing Agent team and one for the Copilot Agent team. Shared issues (e.g., sealed class handling, negative mock verification) appear in both backlogs.
-
-Key features:
-- **Deduplication** — groups issues that describe the same root problem across multiple reports
-- **Recurrence tracking** — issues seen across more runs rank higher within the same ROI tier
-- **Versioning** — archives previous backlogs to `history\` before overwriting, so you always have one clean file plus full history
-- **Re-sortable** — every time you run it, issues are re-sorted by ROI priority and recurrence
-
-#### Quick Start
-
-```
-Extract issues from C:\path\to\Evaluations
-```
-
-```
-Build a backlog from these reports: C:\path\to\folder1 C:\path\to\folder2
-```
+| [`pre-run-analysis`](./testing/pre-run-analysis/) | Analyze a .NET project before test generation — detects blockers, maps testable surface, sets quality bar |
+| [`collect-test-copilot-logs`](./testing/collect-test-copilot-logs/) | Collect test artifacts and Copilot diagnostic logs after a Copilot Agent Mode run |
+| [`collect-test-testingagent-logs`](./testing/collect-test-testingagent-logs/) | Collect test artifacts, Copilot logs, and Testing Agent logs after a Testing Agent run |
+| [`copilot-test-review`](./testing/copilot-test-review/) | Review and score a GH Copilot Agent Mode test generation run |
+| [`testing-agent-review`](./testing/testing-agent-review/) | Review and score a .NET Testing Agent test generation run |
+| [`unit-test-comparison`](./testing/unit-test-comparison/) | Side-by-side comparison of Testing Agent vs Copilot Agent Mode |
+| [`extract-issues`](./testing/extract-issues/) | Extract, deduplicate, and prioritize issues from review reports into backlogs |
+
+> See the [testing README](./testing/README.md) for the recommended workflow pipeline, detailed skill descriptions, and quick-start examples.
 
 ## Using These Skills
 
@@ -284,7 +63,7 @@ The Copilot CLI has built-in skill management via the `/skills` slash command.
    For example, to install `testing-agent-review` after cloning this repo:
 
    ```
-   /skills add C:\path\to\skills\testing-agent-review
+   /skills add C:\path\to\skills\testing\testing-agent-review
    ```
 
    This copies the `SKILL.md` into `~/.copilot/skills/<skill-name>/`.
@@ -325,7 +104,9 @@ You can use a skill in VS Code by placing the `SKILL.md` content into one of the
 
 ## Adding a New Skill
 
-1. Create a new folder under the repo root (e.g., `my-new-skill/`)
-2. Add a `SKILL.md` file following the format used by existing skills
-3. Define trigger phrases, inputs, outputs, and detailed instructions
-4. Update this README with a summary of the new skill
+1. Identify the category folder (e.g., `testing/`, `debugging/`) — create it if it's a new category
+2. Create a new skill folder inside the category (e.g., `testing/my-new-skill/`)
+3. Add a `SKILL.md` file following the format used by existing skills
+4. Define trigger phrases, inputs, outputs, and detailed instructions
+5. Update the category `README.md` with a summary of the new skill
+6. Update this root `README.md` to include the skill in the category table
