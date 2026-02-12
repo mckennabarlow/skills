@@ -59,33 +59,33 @@ The skills in this category follow a natural pipeline. Use them in this order:
 
 ## Skills
 
-### Pre-Run Analysis
+### Step 0 — Pre-Run Analysis
 
 | Skill | Description |
 |-------|-------------|
 | [`pre-run-analysis`](./pre-run-analysis/) | Analyze a .NET project before running any test generation tool — detects blockers (sealed classes, CPM, build failures), maps the testable surface, generates tailored prompts, and sets a quality bar. Works in VS Code, Visual Studio, and Copilot CLI. |
 
-### Log Collection
+### Step 1 — Log Collection
 
 | Skill | Description |
 |-------|-------------|
 | [`collect-test-copilot-logs`](./collect-test-copilot-logs/) | Collects logs, source files, generated test files from a .NET repo after a Copilot prompt — captures TRX results, console output, Cobertura code coverage, and Copilot diagnostic logs |
 | [`collect-test-testingagent-logs`](./collect-test-testingagent-logs/) | Collects logs, source files, generated test files from a .NET repo after a Testing Agent prompt — captures TRX results, console output, Cobertura code coverage, Copilot diagnostic logs, and Testing Agent session logs |
 
-### Review
+### Step 2 — Review
 
 | Skill | Description |
 |-------|-------------|
 | [`testing-agent-review`](./testing-agent-review/) | Analyze a single .NET Testing Agent run — classifies test quality, scores across five dimensions, and produces a detailed evaluation report |
 | [`copilot-test-review`](./copilot-test-review/) | Analyze a single GH Copilot Agent Mode test generation run — reviews the log, assesses generated test quality, scores across five dimensions, and produces a detailed evaluation report |
 
-### Comparison
+### Step 3 — Comparison _(optional)_
 
 | Skill | Description |
 |-------|-------------|
 | [`unit-test-comparison`](./unit-test-comparison/) | Run a structured case study review comparing the .NET Testing Agent and GH Copilot Agent Mode — produces individual evaluations plus a side-by-side comparison |
 
-### Issue Extraction
+### Step 4 — Issue Extraction _(optional)_
 
 | Skill | Description |
 |-------|-------------|
