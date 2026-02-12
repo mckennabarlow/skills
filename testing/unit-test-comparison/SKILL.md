@@ -476,8 +476,19 @@ Each issue must follow this format:
 
 - **Suggested fix:** <Concrete, implementable change the agent could make>
 
+- **Fix location:** <Where the fix would be implemented — one or more of: `LLM prompt/model`, `Testing Agent orchestrator`, `Copilot Agent orchestrator`, `Roslyn analyzers`, `NuGet/MSBuild tooling`, `VS test runner`, `User workflow`>
+
 - **Why ROI:** <1 sentence — the main reason this issue merits its tier>
 ```
+
+**Fix location values** — use the most specific label(s) that apply:
+- **LLM prompt/model** — the fix requires better prompting, fine-tuning, or model capability (e.g., generating smarter test code)
+- **Testing Agent orchestrator** — the fix is in the Testing Agent's control logic (e.g., fix loop, file selection, stall detection, strategy switching)
+- **Copilot Agent orchestrator** — the fix is in Copilot's agent mode control logic (e.g., tool selection, file handling, validation loops)
+- **Roslyn analyzers** — the fix involves static analysis, diagnostics, or code-aware checks (e.g., detecting sealed classes before generating mocks)
+- **NuGet/MSBuild tooling** — the fix involves package management, build configuration, or project file handling
+- **VS test runner** — the fix involves test discovery, execution, or caching in Visual Studio
+- **User workflow** — the fix is a recommendation for the user (e.g., extracting an interface, changing project structure)
 
 **Common patterns to look for (use only if evidenced):**
 - Trivial / filler tests (e.g., constructor-not-null, constant return value re-tests)
