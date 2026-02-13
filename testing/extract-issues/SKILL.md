@@ -87,6 +87,7 @@ For each report, find all `### Issue N` sections and extract:
 | Problem | Text after `**Problem:**` |
 | Suggested fix | Text after `**Suggested fix:**` |
 | Fix location | Text after `**Fix location:**` |
+| LLM cost | Text after `**LLM cost:**` |
 | Why ROI | Text after `**Why ROI:**` |
 | Source report | The file name and path of the report |
 
@@ -222,6 +223,7 @@ Before running, decide:
 - **Problem:** <Merged description citing specific evidence>
 - **Fix location:** <Location>
 - **Suggested fix:** <Best merged fix suggestion>
+- **LLM cost:** <Merged LLM cost from source issues — aggregate or summarize across runs, e.g., "~8 of 15 LLM calls (53%) in Run 1; ~5 of 12 (42%) in Run 2". If all sources report "N/A", use "N/A". If mixed, include available data.>
 - **Why ROI:** <Reason for the tier>
 - **Observed in:** <List of reports> (N of M reports)
 - **Recurrence:** <How many runs exhibited this>
@@ -250,6 +252,7 @@ Before running, decide:
 | **Recurrence** | How many actual tool runs exhibited this issue (e.g., "2 of 2 Testing Agent runs"). This is different from report count — a comparison report echoing a finding doesn't add a new run occurrence. |
 | **Fix location** | Use the most complete fix location from all duplicates |
 | **Suggested fix** | Use the most actionable fix. If multiple reports suggest slightly different fixes, merge the best parts. |
+| **LLM cost** | Merge LLM cost data from all duplicate instances. Aggregate across runs (e.g., "~8 of 15 calls in Run 1; ~5 of 12 in Run 2"). If all sources report "N/A", use "N/A". |
 | **Why ROI** | Use the most compelling justification from all duplicates |
 
 ---

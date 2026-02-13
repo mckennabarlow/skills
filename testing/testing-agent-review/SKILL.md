@@ -232,11 +232,15 @@ When producing this section:
    - Impact (time saved, correctness, reliability): 0–3
    - Fixability (clear repro + implementable heuristic): 0–2
    - Urgency (blocks runs, causes hangs/failures): 0–2
-   - Total: 0–10
+   - LLM waste (LLM calls, tokens, or time consumed by this issue relative to the run total): 0–2
+     - 0 = N/A or negligible LLM cost (quality gap, no extra calls)
+     - 1 = moderate LLM cost (< 30% of total run calls/tokens)
+     - 2 = high LLM cost (≥ 30% of total run calls/tokens consumed by this issue)
+   - Total: 0–12
 
    Map score to tier:
-   - 8–10 => ROI: HIGH
-   - 5–7  => ROI: MEDIUM
+   - 9–12 => ROI: HIGH
+   - 5–8  => ROI: MEDIUM
    - 0–4  => ROI: LOW
 
 3) Sort the issues by ROI tier first (HIGH, then MEDIUM, then LOW).
@@ -267,6 +271,8 @@ Each issue must follow this format:
 - **Suggested fix:** <Concrete, implementable change the agent could make>
 
 - **Fix location:** <Where the fix would be implemented — one or more of: `LLM prompt/model`, `Testing Agent orchestrator`, `Roslyn analyzers`, `NuGet/MSBuild tooling`, `VS test runner`, `User workflow`>
+
+- **LLM cost:** <Estimated LLM calls, tokens, and/or time consumed by this issue — derived from correlating log entries (e.g., `LLM call` / `TotalElapsed` patterns) with the problem's fix iterations or time window. Format: `~N of M LLM calls (X%), ~Ds elapsed` — include whichever data is available. If the issue did not consume extra LLM resources (e.g., a test quality gap), note "N/A — quality gap, no extra LLM cost". If LLM usage data is not available in the log, note "Unknown — LLM usage data not available in log".>
 
 - **Why ROI:** <1 sentence — the main reason this issue merits its tier>
 ```
