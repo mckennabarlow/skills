@@ -120,15 +120,17 @@ Extract `<ProjectName>` from the log — use the solution name, repo folder name
 
 #### Run Metadata
 - **Tool:** .NET Testing Agent
-- **Prompt:** the exact prompt passed to the Testing Agent (extract from log, e.g., `@test Write unit tests for all the open files`)
-- **Target:** full path to the source file(s) or folder under test
-- **Date/Time:** date and time of the run (extract from first timestamp in log)
-- **Visual Studio Version:** auto-extract from the Copilot diagnostic log (`copilot-output.log`). Search the first 50 lines for `Copilot chat version`. The line format is: `Copilot chat version <CopilotVersion>. VS: <VSVersion>. Session: <id>`. Extract the value after `VS:`. If the Copilot log is not available, fall back to `run-metadata.md`. Only ask the user if neither source contains the VS version.
-- **Copilot Chat Version:** auto-extract from the same log line — the value after `Copilot chat version` and before the first period (e.g., `18.5.38402+d52add363e`). Note "Unknown" if not found.
-- **Agent version:** extract from first line of log (e.g., `.NET Code Testing Agent v0.4.943-alpha+...`)
-- **Model:** auto-extract from the Testing Agent log (`model:` on the `Starting test generation with scope` line). If not found, extract from the Copilot diagnostic log (`PreferredModelFamily=`). Only ask the user if neither source contains the model.
-- **Log file:** full path
-- **Total duration:** calculate from first and last timestamps in the log (format: `X minutes Y seconds`)
+- **Prompt:** read from `run-metadata.md`. Fallback: extract from log
+- **Target:** read from `run-metadata.md`. Fallback: extract from log
+- **Date/Time:** read from `run-metadata.md`. Fallback: extract from first timestamp in log
+- **Duration:** read from `run-metadata.md`. Fallback: calculate from first and last timestamps in the log
+- **Model:** read from `run-metadata.md`. Fallback: extract from Testing Agent log (`model:`) or Copilot log (`PreferredModelFamily=`). Only ask user as last resort.
+- **Agent Version:** read from `run-metadata.md`. Fallback: extract from first line of log
+- **Visual Studio Version:** read from `run-metadata.md`. Fallback: auto-extract from `copilot-output.log`. Only ask user as last resort.
+- **Copilot Chat Version:** read from `run-metadata.md`. Fallback: auto-extract from `copilot-output.log`. Note "Unknown" if not found.
+- **Custom Instructions:** read from `run-metadata.md`. Fallback: extract from log. Note "None detected" if not found.
+- **Log file:** read from `run-metadata.md`. Fallback: use discovered path.
+- **Total duration:** read from `run-metadata.md`. Fallback: calculate from log timestamps.
 
 #### Result
 - One-line summary (e.g., "0 tests generated — compilation errors could not be resolved")
@@ -232,14 +234,17 @@ If the generated test file(s) are provided, read the actual test code and the ta
 
 #### Run Metadata
 - **Tool:** GH Copilot Agent Mode
-- **Prompt:** the exact prompt passed to Copilot (extract from log, e.g., "Generate unit tests for MyClass.cs")
-- **Target:** full path to source file(s) or folder under test
-- **Date/Time:** date and time of the run (extract from log timestamps if available)
-- **Visual Studio Version:** auto-extract from the Copilot diagnostic log (`copilot-output.log`). Search the first 50 lines for `Copilot chat version`. The line format is: `Copilot chat version <CopilotVersion>. VS: <VSVersion>. Session: <id>`. Extract the value after `VS:`. If the Copilot log is not available, fall back to `run-metadata.md`. Only ask the user if neither source contains the VS version.
-- **Copilot Chat Version:** auto-extract from the same log line — the value after `Copilot chat version` and before the first period (e.g., `18.5.38402+d52add363e`). Note "Unknown" if not found.
-- **Model:** auto-extract from the Copilot diagnostic log (`PreferredModelFamily=` in the config section, typically within the first 350 lines). Only ask the user if the log doesn't contain the model.
-- **Log file:** full path
-- **Total duration:** extract from timestamps if available; note "Unknown (log lacks per-line timestamps)" if not
+- **Prompt:** read from `run-metadata.md`. Fallback: extract from log
+- **Target:** read from `run-metadata.md`. Fallback: extract from log
+- **Date/Time:** read from `run-metadata.md`. Fallback: extract from log timestamps
+- **Duration:** read from `run-metadata.md`. Fallback: extract from timestamps; note "Unknown" if not available
+- **Model:** read from `run-metadata.md`. Fallback: extract from Copilot log (`PreferredModelFamily=`). Only ask user as last resort.
+- **Agent Version:** read from `run-metadata.md` (will be `N/A` for Copilot runs)
+- **Visual Studio Version:** read from `run-metadata.md`. Fallback: auto-extract from `copilot-output.log`. Only ask user as last resort.
+- **Copilot Chat Version:** read from `run-metadata.md`. Fallback: auto-extract from `copilot-output.log`. Note "Unknown" if not found.
+- **Custom Instructions:** read from `run-metadata.md`. Fallback: extract from log. Note "None detected" if not found.
+- **Log file:** read from `run-metadata.md`. Fallback: use discovered path.
+- **Total duration:** read from `run-metadata.md`. Fallback: extract from timestamps; note "Unknown" if not available
 
 #### Result
 - One-line summary

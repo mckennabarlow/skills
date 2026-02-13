@@ -84,8 +84,8 @@ Make these calls **simultaneously in a single response**:
 
 1. **Read first 80 lines** of log — captures model, prompt, scope, configuration
 2. **Read last 80 lines** of log — captures final outcomes, total duration
-3. **Read `run-metadata.md`** if it exists
-4. **Read first 350 lines of `copilot-output.log`** if it exists — search for `Copilot chat version` to auto-extract VS Version and Copilot Chat Version, and `PreferredModelFamily=` to auto-extract the LLM model used. For Testing Agent runs, also check the agent log for `model:` on the `Starting test generation with scope` line.
+3. **Read `run-metadata.md`** if it exists — this is the **primary source** for identity metadata (Tool, Model, VS Version, Copilot Chat Version, Duration, etc.). If it contains all needed identity fields, skip step 4.
+4. **Only if `run-metadata.md` is missing or incomplete:** Read first 350 lines of `copilot-output.log` if it exists — search for `Copilot chat version` to extract VS Version and Copilot Chat Version, and `PreferredModelFamily=` for the model. This is the fallback path only.
 5. **Grep for LLM patterns** across the full log file (one grep, multiple patterns OR'd)
 
 #### Testing Agent grep — single call:
@@ -154,10 +154,10 @@ Compose and save the report, then print it. Use this format:
 
 | Metric | Value |
 |--------|-------|
-| **Tool** | <Testing Agent / Copilot Agent Mode> |
-| **Model** | <model name> |
-| **VS Version** | <auto-extract from Copilot log, or from run-metadata.md> |
-| **Copilot Chat Version** | <auto-extract from Copilot log, or "Unknown"> |
+| **Tool** | <from run-metadata.md, or detect from log> |
+| **Model** | <from run-metadata.md, or extract from log> |
+| **VS Version** | <from run-metadata.md, or auto-extract from Copilot log> |
+| **Copilot Chat Version** | <from run-metadata.md, or auto-extract from Copilot log, or "Unknown"> |
 | **Total LLM calls** | <N> |
 | **Total duration** | <X min Y sec> |
 | **Total tokens** | <N input + N output = N total> (Copilot only) |

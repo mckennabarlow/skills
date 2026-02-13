@@ -87,8 +87,8 @@ Make these tool calls **simultaneously in a single response**:
 
 1. **Read first 80 lines** of the log file (contains version, prompt, target, model, scope, solution)
 2. **Read last 80 lines** of the log file (contains how it ended — success, crash, cancel, errors)
-3. **Read `run-metadata.md`** if it exists
-4. **Read first 350 lines of `copilot-output.log`** if it exists in the artifacts folder — search for `Copilot chat version` to auto-extract VS Version and Copilot Chat Version (the line format is: `Copilot chat version <CopilotVersion>. VS: <VSVersion>. Session: <id>`), and `PreferredModelFamily=` to auto-extract the LLM model.
+3. **Read `run-metadata.md`** if it exists — this is the **primary source** for all identity metadata (Tool, Prompt, Target, Date/Time, Duration, Model, Agent Version, VS Version, Copilot Chat Version, Custom Instructions, Log file). If it contains all needed fields, skip step 4.
+4. **Only if `run-metadata.md` is missing or incomplete:** Read first 350 lines of `copilot-output.log` if it exists — search for `Copilot chat version` to extract VS Version and Copilot Chat Version, and `PreferredModelFamily=` for the model. This is the fallback path only.
 
 This gives you ~90% of what you need. The head has startup metadata; the tail has the outcome.
 
@@ -171,9 +171,10 @@ From the **tail**: last file edits (`FileEditingState`), token totals (`TotalTok
 | **Duration** | <X min Y sec> |
 | **Model** | <model name or "Unknown"> |
 | **Agent Version** | <version string or "N/A"> |
-| **VS Version** | <auto-extract from Copilot log, or from run-metadata.md> |
-| **Copilot Chat Version** | <auto-extract from Copilot log, or "Unknown"> |
-| **Custom Instructions** | <file path(s) or "None detected"> |
+| **VS Version** | <from run-metadata.md, or auto-extract from Copilot log> |
+| **Copilot Chat Version** | <from run-metadata.md, or auto-extract from Copilot log, or "Unknown"> |
+| **Custom Instructions** | <from run-metadata.md, or extract from log, or "None detected"> |
+| **Log file** | <full path to the primary log file> |
 
 ## Outcome: <emoji> <outcome label>
 

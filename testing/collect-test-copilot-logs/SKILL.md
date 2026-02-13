@@ -204,14 +204,24 @@ $metadata = @"
 | **Prompt** | $prompt |
 | **Target** | $target |
 | **Date/Time** | $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') |
+| **Duration** | $duration |
+| **Model** | $model |
+| **Agent Version** | N/A |
 | **Visual Studio Version** | $vsVersion |
 | **Copilot Chat Version** | $copilotChatVersion |
-| **Model** | $model |
+| **Custom Instructions** | $customInstructions |
+| **Log file** | $logFilePath |
 "@
 $metadata | Out-File (Join-Path $outDir "run-metadata.md") -Encoding utf8
 ```
 
-Substitute `$prompt`, `$target`, `$vsVersion`, `$copilotChatVersion`, and `$model` with the values extracted from the Copilot log in Step 4. Do not ask the user for VS version or model.
+Substitute all variables with values extracted from the Copilot log in Step 4:
+- `$prompt`, `$target` — from the user or log
+- `$vsVersion`, `$copilotChatVersion`, `$model` — auto-extracted from the Copilot log (see Step 4)
+- `$duration` — calculate from first and last timestamps in the log, format as `X min Y sec`. If timestamps are not available, note "Unknown"
+- `$customInstructions` — check whether a custom instructions file was detected in the log. Look for references to `.github/copilot-instructions.md` or `.github/instructions/*.instructions.md`. Note the file path(s) if found, or "None detected"
+- `$logFilePath` — full path to the `copilot-output.log` file copied in Step 4
+- **Agent Version** is always `N/A` for Copilot runs
 
 ### Step 8: Verify and summarize
 
