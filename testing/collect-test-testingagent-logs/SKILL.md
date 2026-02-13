@@ -146,10 +146,7 @@ if (Test-Path $copilotLogDir) {
 }
 ```
 
-**Manual confirmation (required):** After automatic collection, remind the user to confirm the captured log corresponds to this session. If additional context is needed:
-1. Open the Copilot Output or Copilot Chat window in Visual Studio
-2. Copy relevant content
-3. Save as `copilot-output.txt` in the artifacts folder
+**Auto-validate Copilot log:** After copying the log, verify it corresponds to this session by checking whether the log contains the current repo path (e.g., the repo root or solution path). If found, the log is valid — proceed without asking the user. If the repo path is not found in the log, warn the user that the captured log may not correspond to this session and ask them to confirm or provide a manual capture as `copilot-output.txt`.
 
 **Auto-extract VS, Copilot, and model versions:** After copying the Copilot log, extract the VS version, Copilot Chat version, and LLM model from the log automatically. Search the first 350 lines for:
 
@@ -204,15 +201,30 @@ if ($coverage) {
 
 ### Step 7: Collect generated test files
 
-Ask the user which `.cs` test file(s) were generated during this Testing Agent run. Copy each file into the artifacts folder, preserving the original file name.
+Auto-detect generated test files instead of asking the user. Use git to find recently modified or added `*Tests*.cs` files:
 
 ```powershell
-# Ask the user for paths to generated test files
-# For each file provided:
-# Copy-Item $testFilePath (Join-Path $outDir (Split-Path $testFilePath -Leaf)) -Force
+# Find test files modified or added in the working tree (unstaged + staged)
+$testFiles = git diff --name-only HEAD -- '*.cs' 2>$null |
+  Where-Object { $_ -match 'Tests?\.cs$|Tests?/' }
+$testFiles += git diff --cached --name-only -- '*.cs' 2>$null |
+  Where-Object { $_ -match 'Tests?\.cs$|Tests?/' }
+$testFiles = $testFiles | Select-Object -Unique
+
+if ($testFiles) {
+  foreach ($f in $testFiles) {
+    $fullPath = Join-Path $repoRoot $f
+    if (Test-Path $fullPath) {
+      Copy-Item $fullPath (Join-Path $outDir (Split-Path $fullPath -Leaf)) -Force
+      Write-Host "Collected: $f"
+    }
+  }
+} else {
+  Write-Host "No recently modified test files detected via git."
+}
 ```
 
-If the user cannot identify the generated files, note "Generated test files not collected — user could not identify them" and continue.
+If no files are found via git (e.g., changes already committed), ask the user as a fallback.
 
 ### Step 8: Save Run Metadata
 

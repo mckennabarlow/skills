@@ -61,16 +61,13 @@ Steps (PowerShell, run from repo root):
       - Print a message indicating no Copilot logs were found.
       - Continue without failing the workflow.
 
-  Manual Copilot log confirmation (still required):
-  - Before finishing, Copilot must remind the user to confirm whether the captured
-    Copilot log corresponds to this test generation or execution session.
-  - If additional Copilot chat or output context is relevant and not reflected in
-    the log file:
-    1. Open the Copilot Output or Copilot Chat window in Visual Studio.
-    2. Copy any relevant content.
-    3. Save it as:
+  Auto-validate Copilot log:
+  - After copying the log, verify it corresponds to this session by checking
+    whether the log contains the current repo path (repo root or solution path).
+  - If found, the log is valid — proceed without asking the user.
+  - If the repo path is not found, warn the user that the log may not correspond
+    to this session and ask them to confirm or provide a manual capture as:
       ./artifacts/test-runs-testingagent/<timestamp>/copilot-output.txt
-    4. Confirm the file exists before completing the workflow.
 
   Important:
   - Copilot logs may include additional background activity beyond this run.
