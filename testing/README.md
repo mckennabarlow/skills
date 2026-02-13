@@ -26,6 +26,13 @@ The skills in this category follow a natural pipeline. Use them in this order:
             │                               │
             ▼                               ▼
 ┌─────────────────────────┐     ┌─────────────────────────┐
+│  1b. QUICK DIAGNOSIS    │     │  1b. QUICK DIAGNOSIS    │
+│                         │     │                         │
+│  run-diagnosis          │     │  run-diagnosis          │
+└───────────┬─────────────┘     └───────────┬─────────────┘
+            │                               │
+            ▼                               ▼
+┌─────────────────────────┐     ┌─────────────────────────┐
 │  2. REVIEW INDIVIDUAL   │     │  2. REVIEW INDIVIDUAL   │
 │                         │     │                         │
 │  testing-agent-review   │     │  copilot-test-review    │
@@ -44,6 +51,13 @@ The skills in this category follow a natural pipeline. Use them in this order:
             │  4. EXTRACT & PRIORITIZE│
             │                         │
             │  extract-issues          │
+            └───────────┬─────────────┘
+                        │
+                        ▼
+            ┌─────────────────────────┐
+            │  5. LLM EFFICIENCY      │
+            │                         │
+            │  llm-efficiency          │
             └─────────────────────────┘
 ```
 
@@ -51,11 +65,23 @@ The skills in this category follow a natural pipeline. Use them in this order:
 |------|-----------|-------|
 | **0. Analyze** | Before running any tool, analyze the target source for blockers, map the testable surface, and set a quality bar | `pre-run-analysis` |
 | **1. Collect** | Run your test generation tool (Testing Agent or Copilot), then collect all artifacts into a timestamped folder | `collect-test-testingagent-logs` or `collect-test-copilot-logs` |
+| **1b. Diagnose** _(optional)_ | Quick triage — did the run succeed, fail, crash, or stall? Get a short summary in ≤3 tool-call rounds | `run-diagnosis` |
 | **2. Review** | Analyze a single run — get a scored report with test quality assessment and suggested improvements | `testing-agent-review` or `copilot-test-review` |
 | **3. Compare** _(optional)_ | If you ran both tools on the same source, compare them side-by-side with a unified scoring table | `unit-test-comparison` |
 | **4. Extract** _(optional)_ | Pull all issues from review/comparison reports into two prioritized, deduplicated backlogs | `extract-issues` |
+| **5. LLM Efficiency** _(optional)_ | Analyze LLM usage — find wasted calls, token bloat, stalls, and get concrete reduction strategies | `llm-efficiency` |
 
-> **💡 Tip:** Step 0 can be run independently before any test generation. Steps 1 and 2 can be run independently. Step 3 requires artifacts from both tools targeting the same source file.
+> **💡 Tip:** Step 0 can be run independently before any test generation. Step 1b is a fast triage pass — use it to decide whether a full review (Step 2) is worth running. Steps 1 and 2 can be run independently. Step 3 requires artifacts from both tools targeting the same source file. Step 5 can be run on any collected artifacts.
+
+## Auto-Extracted Metadata
+
+All skills automatically extract the following from the Copilot diagnostic log (`copilot-output.log`), eliminating the need to ask the user:
+
+| Field | Source | Log pattern |
+|-------|--------|-------------|
+| **VS Version** | Copilot log (first 50 lines) | `Copilot chat version ... VS: <version>` |
+| **Copilot Chat Version** | Copilot log (first 50 lines) | `Copilot chat version <version>. VS: ...` |
+| **LLM Model** | Copilot log (first 350 lines) or Testing Agent log | `PreferredModelFamily=<model>` or `model: <model>` |
 
 ## Skills
 
@@ -71,6 +97,12 @@ The skills in this category follow a natural pipeline. Use them in this order:
 |-------|-------------|
 | [`collect-test-copilot-logs`](./collect-test-copilot-logs/) | Collects logs, source files, generated test files from a .NET repo after a Copilot prompt — captures TRX results, console output, Cobertura code coverage, and Copilot diagnostic logs |
 | [`collect-test-testingagent-logs`](./collect-test-testingagent-logs/) | Collects logs, source files, generated test files from a .NET repo after a Testing Agent prompt — captures TRX results, console output, Cobertura code coverage, Copilot diagnostic logs, and Testing Agent session logs |
+
+### Step 1b — Quick Diagnosis _(optional)_
+
+| Skill | Description |
+|-------|-------------|
+| [`run-diagnosis`](./run-diagnosis/) | Fast triage of any test generation run (Testing Agent or Copilot). Reads log head/tail in parallel, classifies the outcome (✅ success, ❌ crashed/cancelled/stalled), and outputs a short summary with key events and up to 5 issues. Optimized for ≤3 tool-call rounds. |
 
 ### Step 2 — Review
 
@@ -90,6 +122,12 @@ The skills in this category follow a natural pipeline. Use them in this order:
 | Skill | Description |
 |-------|-------------|
 | [`extract-issues`](./extract-issues/) | Extract, deduplicate, and prioritize issues from review and comparison reports into two sorted backlog markdowns |
+
+### Step 5 — LLM Efficiency Analysis _(optional)_
+
+| Skill | Description |
+|-------|-------------|
+| [`llm-efficiency`](./llm-efficiency/) | Analyze LLM usage in a test generation run — find wasted calls, token bloat, stalls, retry loops, and cache misses. Produces a short efficiency report with concrete reduction strategies and estimated savings. Optimized for ≤3 tool-call rounds. |
 
 ## Skill Details
 
@@ -127,8 +165,8 @@ This skill automates the collection of test artifacts and Copilot diagnostic log
 - **Run all tests** in the repo with TRX logging and code coverage collection
 - **Capture console output** — redirects all test output to a file
 - **Collect Copilot logs** — automatically copies the most recent log from `%TEMP%\VSGitHubCopilotLogs`
+- **Auto-extract metadata** — VS version, Copilot Chat version, and LLM model from the Copilot log
 - **Collect code coverage** — locates and copies the Cobertura XML report
-- **Prompt for manual confirmation** — reminds the user to verify the Copilot log matches the current session
 
 All artifacts are stored under `./artifacts/test-runs-copilot/<YYYYMMDD-HHMMSS>/`.
 
@@ -150,8 +188,8 @@ This skill automates the collection of test artifacts, Copilot diagnostic logs, 
 - **Capture console output** — redirects all test output to a file
 - **Collect Copilot logs** — automatically copies the most recent log from `%TEMP%\VSGitHubCopilotLogs`
 - **Collect Testing Agent logs** — copies the most recently created subfolder from `%TEMP%\VSCodeTestingAgentLogs`
+- **Auto-extract metadata** — VS version, Copilot Chat version, and LLM model from the Copilot log
 - **Collect code coverage** — locates and copies the Cobertura XML report
-- **Prompt for manual confirmation** — reminds the user to verify the Copilot log matches the current session
 
 All artifacts are stored under `./artifacts/test-runs-testingagent/<YYYYMMDD-HHMMSS>/`.
 
@@ -159,6 +197,32 @@ All artifacts are stored under `./artifacts/test-runs-testingagent/<YYYYMMDD-HHM
 
 ```
 Collect Testing Agent and test logs for this repo
+```
+
+---
+
+### [`run-diagnosis`](./run-diagnosis/)
+
+**Fast triage of any test generation run — what happened and why.**
+
+This skill is optimized for speed (≤3 tool-call rounds). It auto-detects whether a run used the Testing Agent or Copilot Agent Mode, reads the log head and tail in parallel, and produces a short summary. It:
+
+- **Classifies the outcome** — ✅ Success, ⚠️ Partial success, ❌ Crashed, Cancelled, Stalled, or No tests generated
+- **Extracts key events** — the 5-15 most important timeline entries
+- **Identifies root causes** — VS service crashes, agent stalls, build failures, cancellations
+- **Reports up to 5 issues** — using the same ROI-tiered format as the review skills
+- **Read-only** — never runs tests, builds, or modifies files
+
+Use this to quickly decide if a full review (Step 2) is warranted.
+
+#### Quick Start
+
+```
+What happened to this test run? C:\path\to\repo
+```
+
+```
+Why did this run fail? C:\path\to\artifacts
 ```
 
 ---
@@ -234,4 +298,28 @@ Key features:
 
 ```
 Extract issues from C:\path\to\Evaluations
+```
+
+---
+
+### [`llm-efficiency`](./llm-efficiency/)
+
+**Analyze LLM usage and find waste in a test generation run.**
+
+This skill is optimized for speed (≤3 tool-call rounds). It examines LLM call patterns, token consumption, and timing data to identify inefficiencies. It:
+
+- **Quantifies LLM usage** — total calls, tokens, duration, cache hit rates
+- **Detects waste patterns** — type search stalls, fix iteration loops, broad scope overhead, low cache rates, token bloat
+- **Estimates savings** — every finding includes the calls/tokens/time that could be saved
+- **Recommends strategies** — concrete, actionable changes ranked by estimated savings and effort
+- **Works with both tools** — elapsed-time analysis for Testing Agent, token/cache analysis for Copilot
+
+#### Quick Start
+
+```
+Analyze LLM efficiency for C:\path\to\repo
+```
+
+```
+How can I reduce token usage in this test run?
 ```
