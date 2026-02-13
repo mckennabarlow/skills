@@ -69,7 +69,8 @@ Before starting collection, ask the user to confirm the following metadata and r
 | **Prompt** | _(record the exact prompt passed to the Testing Agent, e.g., "Generate unit tests for MyClass.cs")_ |
 | **Target** | _(file, folder, project, or solution targeted)_ |
 | **Date/Time** | _(date and time of the run)_ |
-| **Visual Studio Version** | _(e.g., 18.5 Insiders)_ |
+| **Visual Studio Version** | _(auto-extract from Copilot log — see Step 4)_ |
+| **Copilot Chat Version** | _(auto-extract from Copilot log — see Step 4)_ |
 
 ---
 
@@ -150,6 +151,24 @@ if (Test-Path $copilotLogDir) {
 2. Copy relevant content
 3. Save as `copilot-output.txt` in the artifacts folder
 
+**Auto-extract VS, Copilot, and model versions:** After copying the Copilot log, extract the VS version, Copilot Chat version, and LLM model from the log automatically. Search the first 350 lines for:
+
+1. **`Copilot chat version`** — the format is:
+
+```
+Copilot chat version <CopilotVersion>. VS: <VSVersion>. Session: <id>
+```
+
+Example: `Copilot chat version 18.5.38402+d52add363e (18.5.38402.54570). VS: VisualStudio.18.int.main/18.5.0-insiders+11513.45.main`
+
+Extract and store:
+- **VS Version** → the value after `VS:` (e.g., `VisualStudio.18.int.main/18.5.0-insiders+11513.45.main`)
+- **Copilot Chat Version** → the value after `Copilot chat version` (e.g., `18.5.38402+d52add363e`)
+
+2. **`PreferredModelFamily=`** — contains the LLM model used (e.g., `claude-opus-4.6`). Extract and store as **Model**.
+
+Use these values in the Run Metadata (Step 8). Do not ask the user for VS version or model — always auto-extract from the Copilot log. If a line is not found, note "Unknown — not found in Copilot log".
+
 ### Step 5: Collect .NET Testing Agent logs
 
 The Testing Agent writes session logs to `%TEMP%\VSCodeTestingAgentLogs` in subfolders organized by date/session. Copy the most recently **created** subfolder (use `CreationTime`, not `LastWriteTime`).
@@ -210,11 +229,13 @@ $metadata = @"
 | **Target** | $target |
 | **Date/Time** | $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') |
 | **Visual Studio Version** | $vsVersion |
+| **Copilot Chat Version** | $copilotChatVersion |
+| **Model** | $model |
 "@
 $metadata | Out-File (Join-Path $outDir "run-metadata.md") -Encoding utf8
 ```
 
-Substitute `$prompt`, `$target`, and `$vsVersion` with the values confirmed by the user in the Run Metadata step.
+Substitute `$prompt`, `$target`, `$vsVersion`, `$copilotChatVersion`, and `$model` with the values extracted from the Copilot log in Step 4. Do not ask the user for VS version or model.
 
 ### Step 9: Verify and summarize
 
