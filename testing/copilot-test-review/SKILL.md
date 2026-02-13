@@ -108,7 +108,7 @@ Extract `<ProjectName>` from the log — use the solution name, repo folder name
 
 ### Run Metadata
 - **Tool:** GH Copilot Agent Mode
-- **Prompt:** auto-extract from `copilot-output.log` — search for `Request content:` and take the quoted text. Fallback: read from `run-metadata.md`. Only ask the user if neither source contains the prompt.
+- **Prompt:** read from `run-metadata.md`. Fallback: auto-extract from `copilot-output.log` — search for `Request content:` and take the quoted text. Only ask the user if neither source contains the prompt.
 - **Target:** read from `run-metadata.md`. Fallback: extract from log
 - **Date/Time:** read from `run-metadata.md`. Fallback: extract from log timestamps if available
 - **Duration:** read from `run-metadata.md`. Fallback: extract from timestamps; note "Unknown" if not available

@@ -120,7 +120,7 @@ Extract `<ProjectName>` from the log — use the solution name, repo folder name
 
 #### Run Metadata
 - **Tool:** .NET Testing Agent
-- **Prompt:** auto-extract from `codetestingagent.log` — search for `Analyzing markdown content and mentions. Content:` and take text after `Content:`. Fallback: read from `run-metadata.md`. Only ask the user if neither source contains the prompt.
+- **Prompt:** read from `run-metadata.md`. Fallback: auto-extract from `codetestingagent.log` — search for `Analyzing markdown content and mentions. Content:` and take text after `Content:`. Only ask the user if neither source contains the prompt.
 - **Target:** read from `run-metadata.md`. Fallback: extract from log
 - **Date/Time:** read from `run-metadata.md`. Fallback: extract from first timestamp in log
 - **Duration:** read from `run-metadata.md`. Fallback: calculate from first and last timestamps in the log
@@ -234,7 +234,7 @@ If the generated test file(s) are provided, read the actual test code and the ta
 
 #### Run Metadata
 - **Tool:** GH Copilot Agent Mode
-- **Prompt:** auto-extract from `copilot-output.log` — search for `Request content:` and take the quoted text. Fallback: read from `run-metadata.md`. Only ask the user if neither source contains the prompt.
+- **Prompt:** read from `run-metadata.md`. Fallback: auto-extract from `copilot-output.log` — search for `Request content:` and take the quoted text. Only ask the user if neither source contains the prompt.
 - **Target:** read from `run-metadata.md`. Fallback: extract from log
 - **Date/Time:** read from `run-metadata.md`. Fallback: extract from log timestamps
 - **Duration:** read from `run-metadata.md`. Fallback: extract from timestamps; note "Unknown" if not available
