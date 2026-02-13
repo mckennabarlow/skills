@@ -23,10 +23,12 @@ skills/
 │   ├── pre-run-analysis/
 │   ├── collect-test-copilot-logs/
 │   ├── collect-test-testingagent-logs/
+│   ├── run-diagnosis/
 │   ├── copilot-test-review/
 │   ├── testing-agent-review/
 │   ├── unit-test-comparison/
-│   └── extract-issues/
+│   ├── extract-issues/
+│   └── llm-efficiency/
 └── <future-category>/     ← add new categories here
 ```
 
@@ -41,10 +43,12 @@ Skills for reviewing and comparing .NET unit test output from the .NET Testing A
 | [`pre-run-analysis`](./testing/pre-run-analysis/) | Analyze a .NET project before test generation — detects blockers, maps testable surface, sets quality bar |
 | [`collect-test-copilot-logs`](./testing/collect-test-copilot-logs/) | Collect test artifacts and Copilot diagnostic logs after a Copilot Agent Mode run |
 | [`collect-test-testingagent-logs`](./testing/collect-test-testingagent-logs/) | Collect test artifacts, Copilot logs, and Testing Agent logs after a Testing Agent run |
+| [`run-diagnosis`](./testing/run-diagnosis/) | Fast triage of any test run — classifies outcome, extracts key events, identifies root cause in ≤3 tool-call rounds |
 | [`copilot-test-review`](./testing/copilot-test-review/) | Review and score a GH Copilot Agent Mode test generation run |
 | [`testing-agent-review`](./testing/testing-agent-review/) | Review and score a .NET Testing Agent test generation run |
 | [`unit-test-comparison`](./testing/unit-test-comparison/) | Side-by-side comparison of Testing Agent vs Copilot Agent Mode |
 | [`extract-issues`](./testing/extract-issues/) | Extract, deduplicate, and prioritize issues from review reports into backlogs |
+| [`llm-efficiency`](./testing/llm-efficiency/) | Analyze LLM usage — find wasted calls, token bloat, stalls, and get reduction strategies in ≤3 tool-call rounds |
 
 > See the [testing README](./testing/README.md) for the recommended workflow pipeline, detailed skill descriptions, and quick-start examples.
 
