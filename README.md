@@ -1,4 +1,4 @@
-# Copilot Skills
+# .NET Skills
 
 A collection of prototype [Copilot Skills](https://docs.github.com/en/copilot/copilot-extensions/copilot-skills) that extend GitHub Copilot CLI with specialized capabilities. Skills are organized by category, with each category in its own folder.
 
