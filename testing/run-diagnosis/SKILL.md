@@ -192,9 +192,21 @@ From the **tail**: last file edits (`FileEditingState`), token totals (`TotalTok
 (If clean run: "No issues detected." If problems found, use issue format below. Max 5 issues.)
 
 ### Issue N (ROI: <HIGH|MEDIUM|LOW>): <title>
-- **Problem:** <what happened — cite log entries/errors>
-- **Suggested fix:** <concrete action>
+
+- **Problem:** <what happened — 2-3 sentences describing the failure>
+
+- **Evidence:**
+  - **Exception/error:** <exact exception type and message from the log, quoted verbatim>
+  - **Log location:** <timestamp and log line number(s) where the error appears>
+  - **Stack trace path:** <the key frames showing the call chain, e.g., `CallerMethod` → `MiddleMethod` → `FailingMethod (file:line)`. Include the source file and line number if present in the stack trace.>
+  - **Owning component:** <which component/assembly owns the failing code — e.g., `Microsoft.VisualStudio.CoverageServices (18.5.0.0)` or `Microsoft.Copilot.Testing.Core`. Identify whether it is a VS-internal component, an agent component, or user code.>
+  - **Trigger condition:** <what the agent was doing when the error occurred — e.g., "during initial coverage collection after running 3 existing tests", "while searching for types across 24 projects">
+  - **Transient or persistent:** <will retrying hit the same error? Explain why — e.g., "Persistent — hard assembly reference mismatch" or "Likely transient — service timeout under load">
+
+- **Suggested fix:** <numbered list of concrete resolution paths, from most likely to workaround. For each, identify who would need to act (VS team, agent team, user).>
+
 - **Fix location:** <`Testing Agent orchestrator` | `Copilot Agent orchestrator` | `VS ServiceHub` | `User workflow` | etc.>
+
 - **Why ROI:** <1 sentence>
 ```
 
