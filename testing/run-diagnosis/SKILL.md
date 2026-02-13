@@ -108,7 +108,7 @@ Use a single grep with `\|` (OR) to find multiple patterns at once. **Do not do 
 
 ### Step 4: Write diagnosis and print immediately
 
-Compose the diagnosis, save it to `run-diagnosis.md` in the artifacts folder, and print the full summary to the console. Do this in a single step.
+Compose the diagnosis, save it to `run-diagnosis-output.md` in the artifacts folder, and print the full summary to the console. Do this in a single step.
 
 ---
 
