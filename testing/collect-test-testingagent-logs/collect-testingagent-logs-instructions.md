@@ -3,13 +3,15 @@ Also includes: TRX + Console Output + Code Coverage (Repo Root) output
 
 ## Run Metadata
 
-| Field | Value |
-|-------|-------|
-| **Tool** | .NET Testing Agent |
-| **Prompt** | _(record the exact prompt passed to the Testing Agent, e.g., "Generate unit tests for MyClass.cs")_ |
-| **Target** | _(file, folder, project, or solution targeted)_ |
-| **Date/Time** | _(date and time of the run)_ |
-| **Visual Studio Version** | _(e.g., 17.14 Preview 3)_ |
+Auto-extract as much metadata as possible from the log files before asking the user. Only prompt the user for fields that could not be auto-detected.
+
+| Field | Auto-extract | Fallback |
+|-------|-------------|----------|
+| **Tool** | .NET Testing Agent | _(hardcoded)_ |
+| **Prompt** | Extract from `codetestingagent.log` — search for `Analyzing markdown content and mentions. Content:` and take text after `Content:`. If not found, search `copilot-output.log` for `Request content:` and take the quoted text. | Ask the user only if neither log contains the prompt. |
+| **Target** | Extract from the prompt text (the `#file:` mention) or from log `Mapped source file` entries. | Ask the user if not found. |
+| **Date/Time** | Extract from the first timestamp in `codetestingagent.log`. | Ask the user if not found. |
+| **Visual Studio Version** | _(e.g., 17.14 Preview 3)_ | Ask the user if not found. |
 
 Context:
 - This file lives at the root of the repository.

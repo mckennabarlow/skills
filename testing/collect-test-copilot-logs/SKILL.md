@@ -59,16 +59,16 @@ Automate the collection of test artifacts and GitHub Copilot diagnostic logs fro
 
 ## Run Metadata
 
-Before starting collection, ask the user to confirm the following metadata and record it in the output:
+Auto-extract as much metadata as possible from the log files before asking the user. Only prompt the user for fields that could not be auto-detected.
 
-| Field | Value |
-|-------|-------|
-| **Tool** | GitHub Copilot |
-| **Prompt** | _(record the exact prompt passed to Copilot, e.g., "Generate unit tests for MyClass.cs")_ |
-| **Target** | _(file, folder, project, or solution targeted)_ |
-| **Date/Time** | _(date and time of the run)_ |
-| **Visual Studio Version** | _(auto-extract from Copilot log — see Step 4)_ |
-| **Copilot Chat Version** | _(auto-extract from Copilot log — see Step 4)_ |
+| Field | Auto-extract | Fallback |
+|-------|-------------|----------|
+| **Tool** | GitHub Copilot | _(hardcoded)_ |
+| **Prompt** | Extract from `copilot-output.log` — search for `Request content:` and take the quoted text. | Ask the user only if the log does not contain the prompt. |
+| **Target** | Extract from the prompt text (the `#file:` mention) or from the `Request content:` line. | Ask the user if not found. |
+| **Date/Time** | Extract from the Copilot log timestamps (e.g., the timestamp on the `Begin sending message` line). | Ask the user if not found. |
+| **Visual Studio Version** | _(auto-extract from Copilot log — see Step 4)_ | Ask the user if not found. |
+| **Copilot Chat Version** | _(auto-extract from Copilot log — see Step 4)_ | Note "Unknown" if not found. |
 
 ---
 
