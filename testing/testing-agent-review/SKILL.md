@@ -108,7 +108,7 @@ Extract `<ProjectName>` from the log — use the solution name, repo folder name
 
 ### Run Metadata
 - **Tool:** .NET Testing Agent
-- **Prompt:** read from `run-metadata.md`. Fallback: extract from log after `Analyzing markdown content and mentions. Content:`
+- **Prompt:** auto-extract from `codetestingagent.log` — search for the line containing `Analyzing markdown content and mentions. Content:` and take the text after `Content:` (this is the exact prompt the user entered). Fallback: read from `run-metadata.md`. Only ask the user if neither source contains the prompt.
 - **Target:** read from `run-metadata.md`. Fallback: extract from log
 - **Date/Time:** read from `run-metadata.md`. Fallback: extract from first timestamp in log
 - **Duration:** read from `run-metadata.md`. Fallback: calculate from first and last timestamps in the log
