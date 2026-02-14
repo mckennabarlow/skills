@@ -80,7 +80,7 @@ Steps (PowerShell, run from repo root):
 6. Copy coverage.cobertura.xml into the root of the timestamped folder.
 
 7. Verify the following files exist:
-   - test-results.trx
+   - test-results*.trx (one per test project)
    - test-console.txt
    - coverage.cobertura.xml
   - copilot-output.log (if available)
@@ -101,13 +101,13 @@ Run tests:
 if ($sln) {
   dotnet test $sln.FullName `
     --results-directory $outDir `
-    --logger "trx;LogFileName=test-results.trx" `
+    --logger "trx;LogFilePrefix=test-results" `
     --collect "XPlat Code Coverage" `
     *> (Join-Path $outDir "test-console.txt")
 } else {
   dotnet test `
     --results-directory $outDir `
-    --logger "trx;LogFileName=test-results.trx" `
+    --logger "trx;LogFilePrefix=test-results" `
     --collect "XPlat Code Coverage" `
     *> (Join-Path $outDir "test-console.txt")
 }
