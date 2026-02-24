@@ -40,6 +40,12 @@ Automate creation of Azure DevOps User Story work items from run-diagnosis markd
 
 ---
 
+## Dependencies
+
+- **Azure DevOps MCP Server** _(internal only)_ — This skill requires the Azure DevOps MCP server to create work items and add comments. Install it from: [microsoft/azure-devops-mcp](https://github.com/microsoft/azure-devops-mcp/)
+
+---
+
 ## Inputs
 
 - **Markdown file path** — Ask the user for the path to the run-diagnosis markdown file. If not provided, search the current working directory recursively for a file named `run-diagnosis.md`.
