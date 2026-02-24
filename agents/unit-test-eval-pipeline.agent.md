@@ -134,6 +134,8 @@ At the end, print a short "What ran" summary and list the artifact folders used.
   - In Step 3, run comparison and LLM efficiency in parallel if both are enabled.
 - If a prerequisite is missing for an optional step, skip that step and explain why.
 - Validate any provided run path exists. If a provided run path does not exist, stop and report the invalid path.
+- **Artifact root preference:** All skills should write outputs under `artifact_root`. When running via the pipeline, the agent passes this. When a skill runs standalone, it should check `C:\Users\cathys\.copilot\unittest-artifact-root.txt` for a saved preference. If the file doesn't exist, ask the user and save their choice there.
+- **Artifact root preference:** All skills should write outputs under `artifact_root`. When running via the pipeline, the agent passes this. When a skill runs standalone, it should check `C:\Users\cathys\.copilot\unittest-artifact-root.txt` for a saved preference. If the file doesn't exist, ask the user and save their choice there.
 
 ## Step 0 (disabled for now): Pre-run analysis
 
@@ -195,6 +197,13 @@ If critical information is still missing, ask the user:
 
 4. Optionally ask for target_source if the user hasn't mentioned it.
 
+5. **Artifact root** (first-time setup, then remembered):
+   - Check whether a saved artifact root exists. Look for the file `C:\Users\cathys\.copilot\unittest-artifact-root.txt`. If the file exists, read the path from it and use it as `artifact_root`. Confirm briefly: "Using artifact root: `<path>`. To change, say 'change artifact root'."
+   - If the file does **not** exist (first run), ask the user: "Where should I save all test artifacts? This will be remembered for future runs." Suggest a default of `C:\Users\cathys\unittest-artifacts\`.
+   - Save the user's choice to `C:\Users\cathys\.copilot\unittest-artifact-root.txt` so all future runs (and all skills) can read it.
+   - If the user says "change artifact root" at any point, ask for the new path and update the file.
+   - Pass `artifact_root` to every skill invocation so they write outputs to the correct location.
+
 Once intake is complete, proceed with Phase 0b (path validation) before starting the pipeline.
 
 ### Phase 0b: Upfront Path Validation
@@ -205,10 +214,10 @@ Before running any skills, validate and touch all directories the pipeline will 
    - repo_path
    - copilot_run_path (if applicable)
    - testingagent_run_path (if applicable)
-   - ./artifacts/ output directory
+   - artifact_root (from step 5 above)
 2. For each path, verify it exists by listing its contents (e.g., `Get-ChildItem <path> -ErrorAction Stop | Select-Object -First 1`).
-3. Create the ./artifacts/ directory if it does not exist.
-4. If any required path is invalid, stop and report immediately — do not proceed to Phase A.
+3. Create the artifact_root directory and any expected subdirectories if they do not exist.
+4. If any required input path is invalid, stop and report immediately — do not proceed to Phase A.
 
 This ensures all permission prompts happen together at the start of the run.
 
