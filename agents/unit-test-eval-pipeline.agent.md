@@ -38,6 +38,67 @@ User must provide:
 - copilot_run_path (optional): path to the repo where Copilot Agent Mode was run, for log collection under ./artifacts/test-runs-copilot/<timestamp>/
 - testingagent_run_path (optional): path to the repo where the .NET Testing Agent was run, for log collection under ./artifacts/test-runs-testingagent/<timestamp>/
 
+## Mode execution summary
+
+Before running the pipeline, always print a short execution plan that tells the user which skills will run for the selected mode and parameters.
+
+Keep this concise and structured.
+
+### When mode=quick
+
+Run:
+- collect-test-copilot-logs (if copilot source and no explicit path)
+- collect-test-testingagent-logs (if testingagent source and no explicit path)
+- run-diagnosis (only if diagnose=true)
+
+Do NOT run unless explicitly enabled:
+- copilot-test-review
+- testing-agent-review
+- unit-test-comparison
+- llm-efficiency
+
+Purpose:
+Fast triage of test generation runs.
+
+---
+
+### When mode=full
+
+Run:
+- collect-test-copilot-logs (if copilot source and no explicit path)
+- collect-test-testingagent-logs (if testingagent source and no explicit path)
+- run-diagnosis (if diagnose=true)
+- copilot-test-review (if copilot run present and review=true)
+- testing-agent-review (if testingagent run present and review=true)
+
+Then run Step 3 parallel analysis if enabled:
+- unit-test-comparison (if compare enabled and both runs present)
+- llm-efficiency (if efficiency enabled, runs independently per run)
+
+Purpose:
+Complete evaluation and cross-run analysis.
+
+---
+
+### Execution banner format
+
+At runtime, print:
+
+Mode: <mode>
+Sources: <copilot | testingagent | both>
+Run inputs:
+  Copilot path: <path or auto-detect>
+  Testing Agent path: <path or auto-detect>
+
+Pipeline plan:
+  Step 1 Collect: <yes/no per source>
+  Step 1b Diagnose: <enabled/disabled>
+  Step 2 Reviews: <copilot | testingagent | both | none>
+  Step 3 Compare: <enabled/disabled>
+  Step 3 LLM efficiency: <enabled/disabled>
+
+Then start execution.
+
 ## Outputs
 
 Do not invent a new output schema in this agent yet.
@@ -143,7 +204,8 @@ Wait for all enabled Step 3 branches to complete.
 ### Finish
 
 Print a concise summary:
-- mode and parameters used
+- Execution mode: <mode>
+- Skills executed: <comma-separated list>
+- Skills skipped: <comma-separated list with reason>
 - which run folders were analyzed
-- which skills ran (and which were skipped, and why)
 - where the artifacts and reports are located under ./artifacts/
