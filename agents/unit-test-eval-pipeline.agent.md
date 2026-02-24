@@ -271,12 +271,14 @@ Then check if the user already provided enough information in their message to p
 
 The goal of diagnose mode is to minimize questions. The agent should:
 
-1. **Determine the repo path:** Use the path the user provided, or default to the current working directory.
-2. **Auto-detect source type:** Run the source auto-detection logic described in the "When mode=diagnose" section above. Do not ask the user which source unless detection fails.
+1. **Determine the repo path or existing run folder:**
+   - If the user provided a path that matches an existing per-run folder under `artifact_root` (e.g., `02242026-ContosoUniversity-full`), use that folder as `run_root` directly. **Skip Phase A (collect)** — the data is already collected. Set source based on which subfolders exist (`copilot/`, `testingagent/`, or both).
+   - Otherwise, treat the path as a repo path (or default to the current working directory) and proceed with a fresh collect.
+2. **Auto-detect source type (fresh run only):** Run the source auto-detection logic described in the "When mode=diagnose" section above. Do not ask the user which source unless detection fails.
 3. **Artifact root:** Same logic as standard intake (check `C:\Users\cathys\.copilot\unittest-artifact-root.txt`, ask only if not saved).
-4. **Construct per-run root folder:** Same logic as standard intake step 6 — build `<MMDDYYYY>-<RepoFolderName>-diagnose` and set `run_root`.
+4. **Construct per-run root folder (fresh run only):** Same logic as standard intake step 6 — build `<MMDDYYYY>-<RepoFolderName>-diagnose` and set `run_root`.
 5. **Skip all other questions** — do not ask about mode (already diagnose), compare, llmefficiency, or target_source.
-5. Proceed directly to Phase 0b (path validation) and then the diagnose-mode pipeline (Phase A → Phase C-diagnose → Phase B-diagnose).
+6. Proceed directly to Phase 0b (path validation) and then the diagnose-mode pipeline. If reusing an existing folder, skip Phase A and go straight to Phase B-diagnose / C-diagnose (review → diagnose).
 
 #### Standard intake (mode=quick or mode=full)
 
@@ -359,7 +361,11 @@ If fail_fast=true:
 
 ### Phase B-diagnose / C-diagnose: Diagnose-mode execution (mode=diagnose only)
 
-When mode=diagnose, after Phase A (collect), run the following streamlined pipeline:
+When mode=diagnose, run the following streamlined pipeline. If reusing an existing run folder, Phase A (collect) was skipped — set `copilot_run_folder` and/or `testingagent_run_folder` based on which subfolders exist in `run_root`.
+
+**Step 1 (if fresh run) — Collect:**
+- Only runs if `run_root` was newly created (not reusing an existing folder).
+- See Phase A.
 
 **Step 2 — Review:**
 - If copilot_run_folder exists, run /copilot-test-review with the run folder.
@@ -373,7 +379,7 @@ When mode=diagnose, after Phase A (collect), run the following streamlined pipel
 
 After both steps complete, skip Phase C and Phase D — go directly to Finish.
 
-The diagnose-mode total step count is: collect(s) + review(s) + diagnose(s). Typically 3 steps for a single source, 5-6 for both.
+The diagnose-mode total step count depends on whether collect is needed: review(s) + diagnose(s) if reusing, or collect(s) + review(s) + diagnose(s) if fresh.
 
 ### Phase C: Reviews (Step 2)
 
