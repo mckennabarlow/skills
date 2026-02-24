@@ -35,6 +35,8 @@ Parameters (use defaults if not specified):
 User must provide:
 - repo_path: path to the repo to analyze (default: current working directory if not provided)
 - target_source (optional): path to the specific source file under test, if available
+- copilot_run_path (optional): path to the repo where Copilot Agent Mode was run, for log collection under ./artifacts/test-runs-copilot/<timestamp>/
+- testingagent_run_path (optional): path to the repo where the .NET Testing Agent was run, for log collection under ./artifacts/test-runs-testingagent/<timestamp>/
 
 ## Outputs
 
@@ -50,6 +52,7 @@ At the end, print a short "What ran" summary and list the artifact folders used.
   - Parallelize independent per-source steps (copilot vs testingagent).
   - In Step 3, run comparison and LLM efficiency in parallel if both are enabled.
 - If a prerequisite is missing for an optional step, skip that step and explain why.
+- Validate any provided run path exists. If a provided run path does not exist, stop and report the invalid path.
 
 ## Step 0 (disabled for now): Pre-run analysis
 
@@ -58,16 +61,40 @@ Do not run it unless the user explicitly asks.
 
 ## Pipeline
 
+### Phase 0: User Intake
+
+Before starting the pipeline, ask the user what they want to do:
+
+1. **"What would you like to do?"**
+   - Analyze a GH Copilot Agent Mode run → set source=copilot
+   - Analyze a .NET Testing Agent run → set source=testingagent
+   - Compare both runs side-by-side → set source=both
+
+2. **Ask for paths based on the answer:**
+   - If source=copilot: ask for the repo path where Copilot was run → set copilot_run_path
+   - If source=testingagent: ask for the repo path where Testing Agent was run → set testingagent_run_path
+   - If source=both: ask for both paths (they are typically different repos/locations on disk)
+
+3. **Ask for mode** (if not already specified):
+   - Quick (collect + diagnose only) → set mode=quick
+   - Full (collect → diagnose → review → compare + efficiency) → set mode=full
+
+4. Optionally ask for target_source if the user hasn't mentioned it.
+
+Once intake is complete, proceed with Phase A using the collected parameters.
+
 ### Phase A: Collect (Step 1)
 
 1. Determine repo_path (use current directory if not specified).
-2. If source includes "copilot", run in parallel with the testingagent collection:
-   - Use skill /collect-test-copilot-logs with repo_path.
-3. If source includes "testingagent", run in parallel with the copilot collection:
-   - Use skill /collect-test-testingagent-logs with repo_path.
-4. After both collection tasks finish (or the selected one finishes), identify:
-   - copilot_run_folder (most recent ./artifacts/test-runs-copilot/<timestamp>/ if created)
-   - testingagent_run_folder (most recent ./artifacts/test-runs-testingagent/<timestamp>/ if created)
+2. If source includes "copilot":
+   - If copilot_run_path is provided, use skill /collect-test-copilot-logs with copilot_run_path.
+   - Otherwise, use skill /collect-test-copilot-logs with repo_path.
+3. If source includes "testingagent":
+   - If testingagent_run_path is provided, use skill /collect-test-testingagent-logs with testingagent_run_path.
+   - Otherwise, use skill /collect-test-testingagent-logs with repo_path.
+4. Determine run folders:
+   - Set copilot_run_folder to the most recent ./artifacts/test-runs-copilot/<timestamp>/ created by the collect skill (if any).
+   - Set testingagent_run_folder to the most recent ./artifacts/test-runs-testingagent/<timestamp>/ created by the collect skill (if any).
 
 If neither run folder exists after collection, stop and report what is missing.
 
