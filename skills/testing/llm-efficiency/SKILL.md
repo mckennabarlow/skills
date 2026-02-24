@@ -191,6 +191,24 @@ Compose and save the report, then print it. Use this format:
 
 (Repeat for each finding. Max 5.)
 
+## Cost Estimate (<model name>)
+
+| Component | Tokens | Est. Cost |
+|-----------|--------|-----------|
+| Input tokens (<N>K) | <N> | ~$<X.XX> |
+| Output tokens (<N>K) | <N> | ~$<X.XX> |
+| **Total** | <N> | **~$<X.XX>** |
+| **Per test** | <N> | **~$<X.XX>** |
+| **Per working test** | <N> | **~$<X.XX>** |
+
+#### Cost Methodology
+
+- **Token source:** <describe where tokens were extracted from — e.g., "Exact per-call counts from VS Copilot diagnostic log `EventType(11)` entries" or "Recovered from VS Copilot diagnostic log for the same VS session">
+- **Pricing basis:** <model pricing used, e.g., "Public Anthropic claude-opus rates ($15/MTok input, $75/MTok output)">. Actual costs through Copilot subscriptions may differ from raw API pricing.
+- **Session isolation:** <note whether the log is scoped to this run only, or covers a broader VS session. Flag if cross-contamination from other interactions is possible.>
+- **What's NOT included:** VS infrastructure overhead, network latency costs, or any Microsoft-internal platform fees.
+- **Accuracy:** Token counts are exact; dollar amounts are directional estimates based on public pricing.
+
 ## Reduction Strategies Summary
 
 | # | Strategy | Estimated savings | Effort |
@@ -241,6 +259,47 @@ Pre-built strategies to recommend when patterns match. Adapt specifics to the ru
 | **Split into per-project runs** | Solution run where agent stalls on inter-project type resolution | Avoids stalls, more predictable duration |
 | **Increase context reuse** | Low cache hit rate in Copilot mode | 20-40% token reduction |
 | **Batch file generation** | Copilot making 1 file edit per turn instead of batching | 30-50% fewer round-trips |
+
+---
+
+## Cost Calculation (Reference)
+
+### Model pricing table
+
+Use the model detected in `run-metadata.md` or from the log to look up pricing. These are public API rates as of early 2026 — actual Copilot subscription costs may differ.
+
+| Model | Input ($/MTok) | Output ($/MTok) | Notes |
+|-------|---------------|-----------------|-------|
+| claude-opus-4.6 | $15.00 | $75.00 | Premium tier |
+| claude-sonnet-4.6 | $3.00 | $15.00 | Standard tier |
+| gpt-4o | $2.50 | $10.00 | Standard tier |
+| gpt-4.1 | $2.00 | $8.00 | Standard tier |
+
+If the model is not in this table, note "Unknown pricing — costs not estimated" and skip the cost section.
+
+### Token extraction by tool type
+
+**Copilot Agent Mode:**
+- Token data comes from `EventType(11)` entries in the Copilot diagnostic log (`copilot-output.log`).
+- Each entry has `InputTokenCount` and `OutputTokenCount` — sum across all entries.
+- The log is scoped to a single Copilot chat session, so cross-contamination is minimal.
+
+**Testing Agent:**
+- The TA's own log (`codetestingagent.log`) reports "No usage information available" — it does NOT track token usage.
+- Token data must be recovered from the **VS Copilot diagnostic log for the same VS session**. This is the log under `%TEMP%\VSGitHubCopilotLogs\` that was active when the TA ran.
+- To find the right log: search Copilot logs that reference the TA repo path, or match by timestamp overlap with the TA run window.
+- The Copilot log captures all LLM API calls routed through the Copilot infrastructure, including TA calls as `EventType(11)`.
+- **Caveat:** This log covers the entire VS session, not just the TA run. If other Copilot interactions occurred in the same VS window, their tokens may be included. Note this in the Cost Methodology section when applicable.
+
+### Formulas
+
+```
+Total cost    = (input_tokens × input_rate / 1,000,000) + (output_tokens × output_rate / 1,000,000)
+Per test      = total_cost / tests_generated
+Per working   = total_cost / tests_passing
+```
+
+**"Per working test"** is the most meaningful cost-efficiency metric — it penalizes runs that generate broken tests (e.g., Moq on non-virtual methods), making it directly comparable across tools.
 
 ---
 
