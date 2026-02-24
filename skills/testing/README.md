@@ -191,7 +191,7 @@ This skill automates the collection of test artifacts and Copilot diagnostic log
 - **Auto-extract metadata** — VS version, Copilot Chat version, and LLM model from the Copilot log
 - **Collect code coverage** — locates and copies the Cobertura XML report
 
-All artifacts are stored under `./artifacts/test-runs-copilot/<YYYYMMDD-HHMMSS>/`.
+All artifacts are stored under `<artifact_root>/copilot/<YYYYMMDD-HHMMSS>/`. The artifact root is configured on first run and saved to `~/.copilot/unittest-artifact-root.txt`.
 
 #### Quick Start
 
@@ -214,7 +214,7 @@ This skill automates the collection of test artifacts, Copilot diagnostic logs, 
 - **Auto-extract metadata** — VS version, Copilot Chat version, and LLM model from the Copilot log
 - **Collect code coverage** — locates and copies the Cobertura XML report
 
-All artifacts are stored under `./artifacts/test-runs-testingagent/<YYYYMMDD-HHMMSS>/`.
+All artifacts are stored under `<artifact_root>/testingagent/<YYYYMMDD-HHMMSS>/`. The artifact root is configured on first run and saved to `~/.copilot/unittest-artifact-root.txt`.
 
 #### Quick Start
 
