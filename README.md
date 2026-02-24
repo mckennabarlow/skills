@@ -1,4 +1,4 @@
-# .NET Skills
+# Copilot Skills
 
 A collection of prototype [Copilot Skills](https://docs.github.com/en/copilot/copilot-extensions/copilot-skills) that extend GitHub Copilot CLI with specialized capabilities. Skills are organized by category, with each category in its own folder.
 
@@ -17,8 +17,8 @@ Skills are reusable prompt-driven modules that teach Copilot how to perform spec
 
 ```
 skills/
-├── README.md              ← you are here
-├── testing/               ← .NET unit testing skills
+├── README.md                        ← you are here
+├── testing/                         ← .NET unit testing skills
 │   ├── README.md
 │   ├── pre-run-analysis/
 │   ├── collect-test-copilot-logs/
@@ -29,10 +29,24 @@ skills/
 │   ├── unit-test-comparison/
 │   ├── extract-issues/
 │   └── llm-efficiency/
-└── <future-category>/     ← add new categories here
+├── workiq-communications/           ← return-to-work briefing skills (WorkIQ)
+│   ├── catchup-manager/
+│   └── catchup-ic/
+└── <future-category>/               ← add new categories here
 ```
 
 ## Skill Categories
+
+### [WorkIQ Communications](./workiq-communications/)
+
+Return-to-work briefing skills powered by [WorkIQ](https://github.com/microsoft/work-iq-mcp) (Microsoft 365 Copilot). When you come back from time away, these skills scan your email, Teams messages, meetings, meeting recordings, and documents to build a comprehensive catch-up briefing with actionable follow-ups. Two variants are available depending on your role:
+
+| Skill | Description |
+|-------|-------------|
+| [`catchup-manager`](./workiq-communications/catchup-manager/) | For managers — auto-discovers direct reports and generates per-person deep dives with 1:1 agendas, manager analysis, top collaborator summaries, and a consolidated briefing with follow-ups |
+| [`catchup-ic`](./workiq-communications/catchup-ic/) | For individual contributors — focuses on your own work items, deadlines, manager analysis, top collaborator summaries, and a consolidated briefing with follow-ups |
+
+**Prerequisites:** Requires [WorkIQ MCP server](https://github.com/microsoft/work-iq-mcp) to be connected and functional.
 
 ### [Testing](./testing/)
 
