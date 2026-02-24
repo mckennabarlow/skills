@@ -1,6 +1,6 @@
 ---
 name: unit-test-eval-pipeline
-description: Orchestrates .NET unit test generation run analysis using existing skills (collect, optional diagnose, reviews, optional compare, optional LLM efficiency). Supports quick and full modes, optional sources, and parallel execution where safe.
+description: Orchestrates .NET unit test generation run analysis using existing skills (collect, optional diagnose, reviews, optional compare, optional LLM efficiency). Supports diagnose, quick, and full modes, optional sources, and parallel execution where safe.
 ---
 
 # Test Run Analysis Pipeline Agent
@@ -40,12 +40,12 @@ It uses the following skills (do not re-implement their logic):
 
 Parameters (use defaults if not specified):
 
-- mode: quick | full (default: full)
-- source: copilot | testingagent | both (default: both)
-- diagnose: true | false (default: true in quick, true in full)
-- review: true | false (default: false in quick, true in full)
-- compare: auto | true | false (default: auto)
-- llmefficiency: true | false (default: false in quick, true in full)
+- mode: diagnose | quick | full (default: full)
+- source: copilot | testingagent | both (default: auto-detect in diagnose, both in quick/full)
+- diagnose: true | false (default: true in all modes)
+- review: true | false (default: true in diagnose, false in quick, true in full)
+- compare: auto | true | false (default: false in diagnose, auto in full)
+- llmefficiency: true | false (default: false in diagnose/quick, true in full)
 - fail_fast: true | false (default: true)
 
 User must provide:
@@ -59,6 +59,40 @@ User must provide:
 Before running the pipeline, always print a short execution plan that tells the user which skills will run for the selected mode and parameters.
 
 Keep this concise and structured.
+
+### When mode=diagnose
+
+This is the fastest diagnostic path. It auto-detects the source type and runs collect → review → diagnose with minimal user input.
+
+**Source auto-detection:**
+- The user provides a single repo path (or uses the current directory).
+- The agent inspects the repo to determine whether it was a Copilot Agent Mode run or a .NET Testing Agent run:
+  1. Look for Testing Agent session logs: search for `.dmlog` files under the repo or `%LOCALAPPDATA%\Microsoft\VisualStudio\*\TestGeneration\Logs\` that reference the repo path. Also check for `.testing-agent-session` or similar markers.
+  2. Look for Copilot Agent mode markers: check for recent Copilot diagnostic logs under `%LOCALAPPDATA%\Microsoft\VisualStudio\*\Logs\` or VS Code Copilot output that references the repo, or check git history for Copilot-authored test commits (author contains "Copilot").
+  3. If only one source is detected, set source to that type automatically.
+  4. If both are detected, set source=both and run both paths.
+  5. If neither is detected, ask the user which tool they used.
+
+**Pipeline steps:**
+1. Collect: Run the appropriate collect skill based on detected source.
+2. Review: Run the matching review skill (/copilot-test-review or /testing-agent-review).
+3. Diagnose: Run /run-diagnosis on the collected run folder.
+
+Do NOT run unless explicitly enabled:
+- unit-test-comparison
+- llm-efficiency
+
+**Defaults:**
+- diagnose: true
+- review: true
+- compare: false
+- llmefficiency: false
+- fail_fast: true
+
+Purpose:
+Point at a repo, auto-detect the source, get a review and diagnosis in one shot. Minimal questions asked.
+
+---
 
 ### When mode=quick
 
@@ -102,6 +136,7 @@ At runtime, print:
 
 Mode: <mode>
 Sources: <copilot | testingagent | both>
+Run root: <run_root path>
 Run inputs:
   Copilot path: <path or auto-detect>
   Testing Agent path: <path or auto-detect>
@@ -141,21 +176,39 @@ Do not invent a new output schema in this agent yet.
 Rely on each skill's standard outputs under `artifact_root` and any markdown reports the skills generate.
 At the end, print a short "What ran" summary and list the artifact folders used.
 
+### Per-run folder naming
+
+Each pipeline execution creates a **per-run root folder** under `artifact_root` named:
+
+```
+<MMDDYYYY>-<RepoFolderName>-<mode>
+```
+
+- **MMDDYYYY**: Current date (e.g., `02242026`).
+- **RepoFolderName**: The leaf folder name of the repo path (e.g., if repo_path is `C:\repos\ContosoUniversity`, use `ContosoUniversity`). If source=both and the two repo paths differ, use the copilot repo folder name.
+- **mode**: The pipeline mode (`diagnose`, `quick`, or `full`).
+
+Example: `02242026-ContosoUniversity-full`
+
+If a folder with the same name already exists, append `-Run2`, `-Run3`, etc. (e.g., `02242026-ContosoUniversity-full-Run2`).
+
+Set `run_root` to `<artifact_root>/<per-run folder name>/` and use it as the base for all skill outputs in this pipeline execution.
+
 ### Artifact root structure
 
-All outputs are written under the user's configured `artifact_root`:
+All outputs for a pipeline run are written under `run_root`:
 
 | Subfolder | Written by | Contents |
 |-----------|-----------|----------|
-| `copilot/<timestamp>/` | collect-test-copilot-logs | Raw run data (TRX, logs, coverage, test files, metadata) |
-| `testingagent/<timestamp>/` | collect-test-testingagent-logs | Raw run data (TRX, logs, coverage, test files, metadata) |
+| `copilot/` | collect-test-copilot-logs | Raw run data (TRX, logs, coverage, test files, metadata) |
+| `testingagent/` | collect-test-testingagent-logs | Raw run data (TRX, logs, coverage, test files, metadata) |
 | `reviews/` | copilot-test-review, testing-agent-review | Flat review report files |
-| `comparisons/<MMDDYYYY-Project-RunN>/` | unit-test-comparison | 3 comparison report files per run |
-| `llmefficiency/` | llm-efficiency | Copies: `llm-efficiency-copilot.md`, `llm-efficiency-testingagent.md` |
+| `comparisons/` | unit-test-comparison | Comparison report files |
+| `llmefficiency/` | llm-efficiency | `llm-efficiency-copilot.md`, `llm-efficiency-testingagent.md` |
 | `backlogs/` | extract-issues | `backlog-testing-agent.md`, `backlog-copilot-agent.md`, `history/` |
 | `pre-run/` | pre-run-analysis | Pre-run checklist reports |
 
-Run-diagnosis and llm-efficiency also write their reports directly into the run folder (`copilot/<ts>/` or `testingagent/<ts>/`).
+Run-diagnosis and llm-efficiency also write their reports directly into the source folder (`copilot/` or `testingagent/`).
 
 ## Important rules
 
@@ -166,8 +219,7 @@ Run-diagnosis and llm-efficiency also write their reports directly into the run 
   - In Step 3, run comparison and LLM efficiency in parallel if both are enabled.
 - If a prerequisite is missing for an optional step, skip that step and explain why.
 - Validate any provided run path exists. If a provided run path does not exist, stop and report the invalid path.
-- **Artifact root preference:** All skills should write outputs under `artifact_root`. When running via the pipeline, the agent passes this. When a skill runs standalone, it should check `C:\Users\cathys\.copilot\unittest-artifact-root.txt` for a saved preference. If the file doesn't exist, ask the user and save their choice there.
-- **Artifact root preference:** All skills should write outputs under `artifact_root`. When running via the pipeline, the agent passes this. When a skill runs standalone, it should check `C:\Users\cathys\.copilot\unittest-artifact-root.txt` for a saved preference. If the file doesn't exist, ask the user and save their choice there.
+- **Artifact root preference:** All skills should write outputs under `run_root` (the per-run folder under `artifact_root`). When running via the pipeline, the agent constructs `run_root` and passes it to each skill. When a skill runs standalone, it should check `C:\Users\cathys\.copilot\unittest-artifact-root.txt` for a saved preference. If the file doesn't exist, ask the user and save their choice there.
 
 ## Step 0 (disabled for now): Pre-run analysis
 
@@ -190,7 +242,7 @@ Do not run it unless the user explicitly asks.
 ║                                                              ║
 ║  OPTIONS                                                     ║
 ║    source          copilot | testingagent | both (both)       ║
-║    mode            quick | full                  (full)       ║
+║    mode            diagnose | quick | full       (full)        ║
 ║    diagnose        true | false                  (true)       ║
 ║    review          true | false                  (true/full)  ║
 ║    compare         auto | true | false           (auto)       ║
@@ -201,8 +253,10 @@ Do not run it unless the user explicitly asks.
 ║    "Analyze my Copilot run at C:\repos\myapp"                ║
 ║    "Compare both runs, full mode, with LLM efficiency"       ║
 ║    "Quick diagnose of the Testing Agent run"                 ║
+║    "Diagnose my run at C:\repos\myapp"                       ║
 ║                                                              ║
 ║  MODES                                                       ║
+║    diagnose → auto-detect → collect → review → diagnose      ║
 ║    quick  →  collect + diagnose                              ║
 ║    full   →  collect → diagnose → review → compare/llm       ║
 ║                                                              ║
@@ -210,6 +264,21 @@ Do not run it unless the user explicitly asks.
 ```
 
 Then check if the user already provided enough information in their message to proceed. Parse any parameters they included (source, paths, mode, etc.) and fill in defaults for the rest.
+
+**If mode=diagnose:** Follow the streamlined diagnose-mode intake below. Skip the standard intake questions.
+
+#### Diagnose-mode intake (mode=diagnose)
+
+The goal of diagnose mode is to minimize questions. The agent should:
+
+1. **Determine the repo path:** Use the path the user provided, or default to the current working directory.
+2. **Auto-detect source type:** Run the source auto-detection logic described in the "When mode=diagnose" section above. Do not ask the user which source unless detection fails.
+3. **Artifact root:** Same logic as standard intake (check `C:\Users\cathys\.copilot\unittest-artifact-root.txt`, ask only if not saved).
+4. **Construct per-run root folder:** Same logic as standard intake step 6 — build `<MMDDYYYY>-<RepoFolderName>-diagnose` and set `run_root`.
+5. **Skip all other questions** — do not ask about mode (already diagnose), compare, llmefficiency, or target_source.
+5. Proceed directly to Phase 0b (path validation) and then the diagnose-mode pipeline (Phase A → Phase C-diagnose → Phase B-diagnose).
+
+#### Standard intake (mode=quick or mode=full)
 
 If critical information is still missing, ask the user:
 
@@ -234,7 +303,13 @@ If critical information is still missing, ask the user:
    - If the file does **not** exist (first run), ask the user: "Where should I save all test artifacts? This will be remembered for future runs." Suggest a default of `C:\Users\cathys\unittest-artifacts\`.
    - Save the user's choice to `C:\Users\cathys\.copilot\unittest-artifact-root.txt` so all future runs (and all skills) can read it.
    - If the user says "change artifact root" at any point, ask for the new path and update the file.
-   - Pass `artifact_root` to every skill invocation so they write outputs to the correct location.
+
+6. **Construct per-run root folder:**
+   - Determine the repo folder name: take the leaf folder name from repo_path (e.g., `C:\repos\ContosoUniversity` → `ContosoUniversity`). If source=both and paths differ, use the copilot repo folder name.
+   - Construct the per-run folder name: `<MMDDYYYY>-<RepoFolderName>-<mode>` (e.g., `02242026-ContosoUniversity-full`).
+   - If a folder with that name already exists under `artifact_root`, append `-Run2`, `-Run3`, etc.
+   - Set `run_root` to `<artifact_root>/<per-run folder name>/`.
+   - Pass `run_root` to every skill invocation so they write outputs to the correct location.
 
 Once intake is complete, proceed with Phase 0b (path validation) before starting the pipeline.
 
@@ -247,8 +322,9 @@ Before running any skills, validate and touch all directories the pipeline will 
    - copilot_run_path (if applicable)
    - testingagent_run_path (if applicable)
    - artifact_root (from step 5 above)
+   - run_root (from step 6 above)
 2. For each path, verify it exists by listing its contents (e.g., `Get-ChildItem <path> -ErrorAction Stop | Select-Object -First 1`).
-3. Create the artifact_root directory and any expected subdirectories if they do not exist.
+3. Create the `run_root` directory and its expected subdirectories (`copilot/`, `testingagent/`, `reviews/`, `comparisons/`, `llmefficiency/`, `backlogs/`, `pre-run/`) if they do not exist.
 4. If any required input path is invalid, stop and report immediately — do not proceed to Phase A.
 
 This ensures all permission prompts happen together at the start of the run.
@@ -265,14 +341,14 @@ Proceed with Phase A using the collected parameters.
    - If testingagent_run_path is provided, use skill /collect-test-testingagent-logs with testingagent_run_path.
    - Otherwise, use skill /collect-test-testingagent-logs with repo_path.
 4. Determine run folders:
-   - Set copilot_run_folder to the most recent `<artifact_root>/copilot/<timestamp>/` created by the collect skill (if any).
-   - Set testingagent_run_folder to the most recent `<artifact_root>/testingagent/<timestamp>/` created by the collect skill (if any).
+   - Set copilot_run_folder to `<run_root>/copilot/` (if copilot source was collected).
+   - Set testingagent_run_folder to `<run_root>/testingagent/` (if testingagent source was collected).
 
 If neither run folder exists after collection, stop and report what is missing.
 
 ### Phase B: Optional quick diagnosis (Step 1b)
 
-If diagnose=true:
+If diagnose=true (and mode is NOT diagnose — diagnose mode runs diagnosis in Phase B-diagnose instead):
 - If copilot_run_folder exists, run /run-diagnosis on that folder.
 - If testingagent_run_folder exists, run /run-diagnosis on that folder.
 These can run in parallel.
@@ -280,6 +356,24 @@ These can run in parallel.
 If fail_fast=true:
 - If diagnosis indicates a run crashed/cancelled/stalled/no tests generated, you may skip review for that run and explain the skip.
 - Continue with the other run if it exists.
+
+### Phase B-diagnose / C-diagnose: Diagnose-mode execution (mode=diagnose only)
+
+When mode=diagnose, after Phase A (collect), run the following streamlined pipeline:
+
+**Step 2 — Review:**
+- If copilot_run_folder exists, run /copilot-test-review with the run folder.
+- If testingagent_run_folder exists, run /testing-agent-review with the run folder.
+- If both exist, run both reviews in parallel.
+
+**Step 3 — Diagnose:**
+- If copilot_run_folder exists, run /run-diagnosis on that folder.
+- If testingagent_run_folder exists, run /run-diagnosis on that folder.
+- These can run in parallel.
+
+After both steps complete, skip Phase C and Phase D — go directly to Finish.
+
+The diagnose-mode total step count is: collect(s) + review(s) + diagnose(s). Typically 3 steps for a single source, 5-6 for both.
 
 ### Phase C: Reviews (Step 2)
 
@@ -316,7 +410,8 @@ Wait for all enabled Step 3 branches to complete.
 
 Print a concise summary:
 - Execution mode: <mode>
+- Run root: <run_root path>
 - Skills executed: <comma-separated list>
 - Skills skipped: <comma-separated list with reason>
 - which run folders were analyzed
-- where the artifacts and reports are located under ./artifacts/
+- where the artifacts and reports are located under run_root
