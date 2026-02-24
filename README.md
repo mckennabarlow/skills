@@ -19,9 +19,8 @@ A collection of prototype [GitHub Copilot Skills](https://docs.github.com/en/cop
 
 ```
 ├── README.md                              ← you are here
-├── .github/
-│   └── agents/                            ← custom agent definitions
-│       └── unit-test-eval-pipeline.agent.md
+├── agents/                                ← custom agent definitions
+│   └── unit-test-eval-pipeline.agent.md
 ├── skills/
 │   ├── testing/                           ← .NET unit testing skills
 │   │   ├── README.md
@@ -43,7 +42,7 @@ A collection of prototype [GitHub Copilot Skills](https://docs.github.com/en/cop
 
 ## Agents
 
-### [`unit-test-eval-pipeline`](./.github/agents/unit-test-eval-pipeline.agent.md)
+### [`unit-test-eval-pipeline`](./agents/unit-test-eval-pipeline.agent.md)
 
 Orchestrates a structured analysis pipeline over .NET unit test generation runs from GH Copilot Agent Mode and/or the .NET Testing Agent. Supports quick and full modes, optional sources, and parallel execution where safe.
 
@@ -162,7 +161,7 @@ You can use a skill in VS Code by placing the `SKILL.md` content into one of the
 
 ### Adding an Agent
 
-1. Create a new `.agent.md` file in `.github/agents/`
+1. Create a new `.agent.md` file in `agents/`
 2. Include YAML frontmatter with `name` and `description`
 3. Define the agent's pipeline, parameters, and which skills it orchestrates
 4. Update this root `README.md` to include the agent in the Agents section
