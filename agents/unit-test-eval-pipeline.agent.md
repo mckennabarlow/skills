@@ -11,6 +11,22 @@ This agent runs a structured analysis pipeline over unit test generation runs pr
 - GH Copilot Agent Mode
 - .NET Testing Agent
 
+## Prerequisites
+
+Before using this agent, you must have already generated unit tests using one or both of these tools:
+
+1. **GH Copilot Agent Mode** — In Visual Studio or VS Code, use Copilot Chat with a prompt like:
+   - `Write unit tests for #MyService.cs`
+   - `Generate tests for the BasketService class`
+
+2. **.NET Testing Agent** — Either:
+   - In Visual Studio, use `@Test Write unit tests for #MyService.cs`
+   - Or use the .NET Testing Agent CLI
+
+This pipeline **does not generate tests** — it collects, diagnoses, reviews, and compares the output from test generation runs you've already completed.
+
+## Skills used
+
 It uses the following skills (do not re-implement their logic):
 - /collect-test-copilot-logs
 - /collect-test-testingagent-logs
