@@ -92,7 +92,7 @@ Do NOT run unless explicitly enabled:
 - llm-efficiency
 
 Purpose:
-Fast triage of test generation runs.
+Fast triage of test generation runs. Ideal when you encounter an issue during test generation (e.g., a crash, stall, or unexpected failure) and want to quickly capture the run artifacts and get a diagnosis before the logs are lost.
 
 ---
 
@@ -325,9 +325,13 @@ Before running any skills, validate and touch all directories the pipeline will 
    - testingagent_run_path (if applicable)
    - artifact_root (from step 5 above)
    - run_root (from step 6 above)
-2. For each path, verify it exists by listing its contents (e.g., `Get-ChildItem <path> -ErrorAction Stop | Select-Object -First 1`).
+   - External paths accessed by collect skills and auto-detection:
+     - `$env:TEMP\VSGitHubCopilotLogs` (if source includes copilot)
+     - `$env:LOCALAPPDATA\Microsoft\VisualStudio` (for Testing Agent logs and Copilot diagnostic logs)
+     - `TestResults\` directories under repo_path (if they exist)
+2. For each path, touch it by listing its contents (e.g., `Get-ChildItem <path> -ErrorAction SilentlyContinue | Select-Object -First 1`). This triggers any acceptance prompts upfront. External paths may not exist — that's fine, just touch them silently.
 3. Create the `run_root` directory and its expected subdirectories (`copilot/`, `testingagent/`, `reviews/`, `comparisons/`, `llmefficiency/`, `backlogs/`, `pre-run/`) if they do not exist.
-4. If any required input path is invalid, stop and report immediately — do not proceed to Phase A.
+4. If any required input path (repo_path, copilot_run_path, testingagent_run_path) is invalid, stop and report immediately — do not proceed to Phase A. External paths that don't exist are not blocking.
 
 This ensures all permission prompts happen together at the start of the run.
 
