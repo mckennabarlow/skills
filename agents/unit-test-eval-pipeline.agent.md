@@ -1,6 +1,6 @@
 ---
 name: unit-test-eval-pipeline
-description: Orchestrates .NET unit test generation run analysis using existing skills (collect, optional diagnose, reviews, optional compare, optional LLM efficiency). Supports diagnose, quick, and full modes, optional sources, and parallel execution where safe.
+description: Orchestrates .NET unit test generation run analysis using existing skills (collect, optional diagnose, reviews, optional compare, optional LLM efficiency). Supports full, quick, and diagnose modes, optional sources, and parallel execution where safe.
 ---
 
 # Test Run Analysis Pipeline Agent
@@ -40,7 +40,7 @@ It uses the following skills (do not re-implement their logic):
 
 Parameters (use defaults if not specified):
 
-- mode: diagnose | quick | full (default: full)
+- mode: full | quick | diagnose (default: full)
 - source: copilot | testingagent | both (default: auto-detect in diagnose, both in quick/full)
 - diagnose: true | false (default: true in all modes)
 - review: true | false (default: true in diagnose, false in quick, true in full)
@@ -59,6 +59,42 @@ User must provide:
 Before running the pipeline, always print a short execution plan that tells the user which skills will run for the selected mode and parameters.
 
 Keep this concise and structured.
+
+### When mode=full
+
+Run:
+- collect-test-copilot-logs (if copilot source and no explicit path)
+- collect-test-testingagent-logs (if testingagent source and no explicit path)
+- run-diagnosis (if diagnose=true)
+- copilot-test-review (if copilot run present and review=true)
+- testing-agent-review (if testingagent run present and review=true)
+
+Then run Step 3 parallel analysis if enabled:
+- unit-test-comparison (if compare enabled and both runs present)
+- llm-efficiency (if llmefficiency enabled, runs independently per run)
+
+Purpose:
+Complete evaluation and cross-run analysis.
+
+---
+
+### When mode=quick
+
+Run:
+- collect-test-copilot-logs (if copilot source and no explicit path)
+- collect-test-testingagent-logs (if testingagent source and no explicit path)
+- run-diagnosis (only if diagnose=true)
+
+Do NOT run unless explicitly enabled:
+- copilot-test-review
+- testing-agent-review
+- unit-test-comparison
+- llm-efficiency
+
+Purpose:
+Fast triage of test generation runs.
+
+---
 
 ### When mode=diagnose
 
@@ -91,42 +127,6 @@ Do NOT run unless explicitly enabled:
 
 Purpose:
 Point at a repo, auto-detect the source, get a review and diagnosis in one shot. Minimal questions asked.
-
----
-
-### When mode=quick
-
-Run:
-- collect-test-copilot-logs (if copilot source and no explicit path)
-- collect-test-testingagent-logs (if testingagent source and no explicit path)
-- run-diagnosis (only if diagnose=true)
-
-Do NOT run unless explicitly enabled:
-- copilot-test-review
-- testing-agent-review
-- unit-test-comparison
-- llm-efficiency
-
-Purpose:
-Fast triage of test generation runs.
-
----
-
-### When mode=full
-
-Run:
-- collect-test-copilot-logs (if copilot source and no explicit path)
-- collect-test-testingagent-logs (if testingagent source and no explicit path)
-- run-diagnosis (if diagnose=true)
-- copilot-test-review (if copilot run present and review=true)
-- testing-agent-review (if testingagent run present and review=true)
-
-Then run Step 3 parallel analysis if enabled:
-- unit-test-comparison (if compare enabled and both runs present)
-- llm-efficiency (if llmefficiency enabled, runs independently per run)
-
-Purpose:
-Complete evaluation and cross-run analysis.
 
 ---
 
@@ -186,7 +186,7 @@ Each pipeline execution creates a **per-run root folder** under `artifact_root` 
 
 - **MMDDYYYY**: Current date (e.g., `02242026`).
 - **RepoFolderName**: The leaf folder name of the repo path (e.g., if repo_path is `C:\repos\ContosoUniversity`, use `ContosoUniversity`). If source=both and the two repo paths differ, use the copilot repo folder name.
-- **mode**: The pipeline mode (`diagnose`, `quick`, or `full`).
+- **mode**: The pipeline mode (`full`, `quick`, or `diagnose`).
 
 Example: `02242026-ContosoUniversity-full`
 
@@ -242,7 +242,7 @@ Do not run it unless the user explicitly asks.
 ║                                                              ║
 ║  OPTIONS                                                     ║
 ║    source          copilot | testingagent | both (both)       ║
-║    mode            diagnose | quick | full       (full)        ║
+║    mode            full | quick | diagnose       (full)        ║
 ║    diagnose        true | false                  (true)       ║
 ║    review          true | false                  (true/full)  ║
 ║    compare         auto | true | false           (auto)       ║
@@ -256,9 +256,9 @@ Do not run it unless the user explicitly asks.
 ║    "Diagnose my run at C:\repos\myapp"                       ║
 ║                                                              ║
 ║  MODES                                                       ║
-║    diagnose → auto-detect → collect → review → diagnose      ║
-║    quick  →  collect + diagnose                              ║
-║    full   →  collect → diagnose → review → compare/llm       ║
+║    full     →  collect → diagnose → review → compare/llm      ║
+║    quick    →  collect + diagnose                             ║
+║    diagnose →  auto-detect → collect → review → diagnose      ║
 ║                                                              ║
 ╚══════════════════════════════════════════════════════════════╝
 ```
