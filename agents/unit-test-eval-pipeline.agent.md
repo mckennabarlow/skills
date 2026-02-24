@@ -29,7 +29,7 @@ Parameters (use defaults if not specified):
 - diagnose: true | false (default: true in quick, true in full)
 - review: true | false (default: false in quick, true in full)
 - compare: auto | true | false (default: auto)
-- llmefficiency: true | false (default: false)
+- llmefficiency: true | false (default: false in quick, true in full)
 - fail_fast: true | false (default: true)
 
 User must provide:
@@ -162,7 +162,7 @@ Do not run it unless the user explicitly asks.
 ║    diagnose        true | false                  (true)       ║
 ║    review          true | false                  (true/full)  ║
 ║    compare         auto | true | false           (auto)       ║
-║    llmefficiency   true | false                  (false)      ║
+║    llmefficiency   true | false                  (true/full)  ║
 ║    fail_fast       true | false                  (true)       ║
 ║                                                              ║
 ║  EXAMPLES                                                    ║
