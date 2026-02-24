@@ -1,6 +1,6 @@
-# Copilot Skills
+# GitHub Copilot Skills
 
-A collection of prototype [Copilot Skills](https://docs.github.com/en/copilot/copilot-extensions/copilot-skills) that extend GitHub Copilot CLI with specialized capabilities. Skills are organized by category, with each category in its own folder.
+A collection of prototype [GitHub Copilot Skills](https://docs.github.com/en/copilot/copilot-extensions/copilot-skills) that extend GitHub Copilot CLI with specialized capabilities. Skills are organized by category, with each category in its own folder.
 
 > **⚠️ Prototype Notice:** All skills in this repo are experimental prototypes. They are under active development, may change without notice, and are not intended for production use.
 
@@ -20,33 +20,22 @@ skills/
 ├── README.md                        ← you are here
 ├── testing/                         ← .NET unit testing skills
 │   ├── README.md
-│   ├── pre-run-analysis/
 │   ├── collect-test-copilot-logs/
 │   ├── collect-test-testingagent-logs/
-│   ├── run-diagnosis/
 │   ├── copilot-test-review/
-│   ├── testing-agent-review/
-│   ├── unit-test-comparison/
 │   ├── extract-issues/
-│   └── llm-efficiency/
+│   ├── llm-efficiency/
+│   ├── pre-run-analysis/
+│   ├── run-diagnosis/
+│   ├── testing-agent-review/
+│   └── unit-test-comparison/
 ├── workiq-communications/           ← return-to-work briefing skills (WorkIQ)
-│   ├── catchup-manager/
-│   └── catchup-ic/
+│   ├── catchup-ic/
+│   └── catchup-manager/
 └── <future-category>/               ← add new categories here
 ```
 
 ## Skill Categories
-
-### [WorkIQ Communications](./workiq-communications/)
-
-Return-to-work briefing skills powered by [WorkIQ](https://github.com/microsoft/work-iq-mcp) (Microsoft 365 Copilot). When you come back from time away, these skills scan your email, Teams messages, meetings, meeting recordings, and documents to build a comprehensive catch-up briefing with actionable follow-ups. Two variants are available depending on your role:
-
-| Skill | Description |
-|-------|-------------|
-| [`catchup-manager`](./workiq-communications/catchup-manager/) | For managers — auto-discovers direct reports and generates per-person deep dives with 1:1 agendas, manager analysis, top collaborator summaries, and a consolidated briefing with follow-ups |
-| [`catchup-ic`](./workiq-communications/catchup-ic/) | For individual contributors — focuses on your own work items, deadlines, manager analysis, top collaborator summaries, and a consolidated briefing with follow-ups |
-
-**Prerequisites:** Requires [WorkIQ MCP server](https://github.com/microsoft/work-iq-mcp) to be connected and functional.
 
 ### [Testing](./testing/)
 
@@ -54,17 +43,28 @@ Skills for reviewing and comparing .NET unit test output from the .NET Testing A
 
 | Skill | Description |
 |-------|-------------|
-| [`pre-run-analysis`](./testing/pre-run-analysis/) | Analyze a .NET project before test generation — detects blockers, maps testable surface, sets quality bar |
 | [`collect-test-copilot-logs`](./testing/collect-test-copilot-logs/) | Collect test artifacts and Copilot diagnostic logs after a Copilot Agent Mode run |
 | [`collect-test-testingagent-logs`](./testing/collect-test-testingagent-logs/) | Collect test artifacts, Copilot logs, and Testing Agent logs after a Testing Agent run |
-| [`run-diagnosis`](./testing/run-diagnosis/) | Fast triage of any test run — classifies outcome, extracts key events, identifies root cause in ≤3 tool-call rounds |
 | [`copilot-test-review`](./testing/copilot-test-review/) | Review and score a GH Copilot Agent Mode test generation run |
-| [`testing-agent-review`](./testing/testing-agent-review/) | Review and score a .NET Testing Agent test generation run |
-| [`unit-test-comparison`](./testing/unit-test-comparison/) | Side-by-side comparison of Testing Agent vs Copilot Agent Mode |
 | [`extract-issues`](./testing/extract-issues/) | Extract, deduplicate, and prioritize issues from review reports into backlogs |
 | [`llm-efficiency`](./testing/llm-efficiency/) | Analyze LLM usage — find wasted calls, token bloat, stalls, and get reduction strategies in ≤3 tool-call rounds |
+| [`pre-run-analysis`](./testing/pre-run-analysis/) | Analyze a .NET project before test generation — detects blockers, maps testable surface, sets quality bar |
+| [`run-diagnosis`](./testing/run-diagnosis/) | Fast triage of any test run — classifies outcome, extracts key events, identifies root cause in ≤3 tool-call rounds |
+| [`testing-agent-review`](./testing/testing-agent-review/) | Review and score a .NET Testing Agent test generation run |
+| [`unit-test-comparison`](./testing/unit-test-comparison/) | Side-by-side comparison of Testing Agent vs Copilot Agent Mode |
 
 > See the [testing README](./testing/README.md) for the recommended workflow pipeline, detailed skill descriptions, and quick-start examples.
+
+### [WorkIQ Communications](./workiq-communications/)
+
+Return-to-work briefing skills powered by [WorkIQ](https://github.com/microsoft/work-iq-mcp) (Microsoft 365 Copilot). When you come back from time away, these skills scan your email, Teams messages, meetings, meeting recordings, and documents to build a comprehensive catch-up briefing with actionable follow-ups. Two variants are available depending on your role:
+
+| Skill | Description |
+|-------|-------------|
+| [`catchup-ic`](./workiq-communications/catchup-ic/) | For individual contributors — focuses on your own work items, deadlines, manager analysis, top collaborator summaries, and a consolidated briefing with follow-ups |
+| [`catchup-manager`](./workiq-communications/catchup-manager/) | For managers — auto-discovers direct reports and generates per-person deep dives with 1:1 agendas, manager analysis, top collaborator summaries, and a consolidated briefing with follow-ups |
+
+**Prerequisites:** Requires [WorkIQ MCP server](https://github.com/microsoft/work-iq-mcp) to be connected and functional.
 
 ## Using These Skills
 
