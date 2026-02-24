@@ -29,7 +29,7 @@ Parameters (use defaults if not specified):
 - diagnose: true | false (default: true in quick, true in full)
 - review: true | false (default: false in quick, true in full)
 - compare: auto | true | false (default: auto)
-- efficiency: true | false (default: false)
+- llmefficiency: true | false (default: false)
 - fail_fast: true | false (default: true)
 
 User must provide:
@@ -73,7 +73,7 @@ Run:
 
 Then run Step 3 parallel analysis if enabled:
 - unit-test-comparison (if compare enabled and both runs present)
-- llm-efficiency (if efficiency enabled, runs independently per run)
+- llm-efficiency (if llmefficiency enabled, runs independently per run)
 
 Purpose:
 Complete evaluation and cross-run analysis.
@@ -99,6 +99,26 @@ Pipeline plan:
 
 Then start execution.
 
+### Progress reporting
+
+As each skill completes, print a progress line so the user knows where they are:
+
+```
+✅ Step 1/N completed: Collect (Copilot)
+✅ Step 2/N completed: Collect (Testing Agent)
+✅ Step 3/N completed: Diagnose
+⏳ Step 4/N running: Review (Copilot)...
+```
+
+Rules:
+- Calculate total step count (N) from the execution plan before starting. Only count steps that will actually run (skip disabled/skipped steps).
+- Number steps sequentially starting at 1.
+- Print `⏳ Step X/N running: <skill name>...` when starting each step.
+- Print `✅ Step X/N completed: <skill name>` when a step finishes successfully.
+- Print `⚠️ Step X/N skipped: <skill name> — <reason>` if a step is skipped (e.g., missing prerequisite, fail_fast triggered).
+- Print `❌ Step X/N failed: <skill name> — <error>` if a step fails.
+- When steps run in parallel (e.g., copilot + testingagent reviews), report each sub-step individually.
+
 ## Outputs
 
 Do not invent a new output schema in this agent yet.
@@ -122,23 +142,56 @@ Do not run it unless the user explicitly asks.
 
 ## Pipeline
 
-### Phase 0: User Intake
+### Phase 0: Usage Banner + User Intake
 
-Before starting the pipeline, ask the user what they want to do:
+**Before doing anything else**, print the following usage banner exactly:
 
-1. **"What would you like to do?"**
+```
+╔══════════════════════════════════════════════════════════════╗
+║              Unit Test Eval Pipeline                        ║
+╠══════════════════════════════════════════════════════════════╣
+║                                                              ║
+║  USAGE                                                       ║
+║    @unit-test-eval-pipeline [options]                         ║
+║                                                              ║
+║  OPTIONS                                                     ║
+║    source          copilot | testingagent | both (both)       ║
+║    mode            quick | full                  (full)       ║
+║    diagnose        true | false                  (true)       ║
+║    review          true | false                  (true/full)  ║
+║    compare         auto | true | false           (auto)       ║
+║    llmefficiency   true | false                  (false)      ║
+║    fail_fast       true | false                  (true)       ║
+║                                                              ║
+║  EXAMPLES                                                    ║
+║    "Analyze my Copilot run at C:\repos\myapp"                ║
+║    "Compare both runs, full mode, with LLM efficiency"       ║
+║    "Quick diagnose of the Testing Agent run"                 ║
+║                                                              ║
+║  MODES                                                       ║
+║    quick  →  collect + diagnose                              ║
+║    full   →  collect → diagnose → review → compare/llm       ║
+║                                                              ║
+╚══════════════════════════════════════════════════════════════╝
+```
+
+Then check if the user already provided enough information in their message to proceed. Parse any parameters they included (source, paths, mode, etc.) and fill in defaults for the rest.
+
+If critical information is still missing, ask the user:
+
+1. **"What would you like to do?"** (only if source not already clear)
    - Analyze a GH Copilot Agent Mode run → set source=copilot
    - Analyze a .NET Testing Agent run → set source=testingagent
    - Compare both runs side-by-side → set source=both
 
-2. **Ask for paths based on the answer:**
+2. **Ask for paths based on the answer** (only if not already provided):
    - If source=copilot: ask for the repo path where Copilot was run → set copilot_run_path
    - If source=testingagent: ask for the repo path where Testing Agent was run → set testingagent_run_path
    - If source=both: ask for both paths (they are typically different repos/locations on disk)
 
-3. **Ask for mode** (if not already specified):
+3. **Ask for mode** (only if not already specified or inferable):
+   - Full (collect → diagnose → review → compare + llmefficiency) (Recommended) → set mode=full
    - Quick (collect + diagnose only) → set mode=quick
-   - Full (collect → diagnose → review → compare + efficiency) → set mode=full
 
 4. Optionally ask for target_source if the user hasn't mentioned it.
 
@@ -193,8 +246,8 @@ Branch D1: Comparison (optional)
 - When running comparison, use /unit-test-comparison with both run folders.
 
 Branch D2: LLM efficiency (optional, independent)
-- If efficiency=false: skip.
-- If efficiency=true:
+- If llmefficiency=false: skip.
+- If llmefficiency=true:
   - Run /llm-efficiency for each available run folder (copilot and/or testingagent).
   - This does not depend on comparison and should not wait for it.
   - It can run in parallel with the comparison branch.
