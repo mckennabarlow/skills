@@ -50,7 +50,14 @@ The skills in this category follow a natural pipeline. Use them in this order:
             └───────────┬───────────────────┘
                         ▼
             ┌─────────────────────────┐
-            │  4. EXTRACT & PRIORITIZE│
+            │  4. FILE WORK ITEMS     │
+            │                         │
+            │  create-ado-workitem     │
+            └───────────┬─────────────┘
+                        │
+                        ▼
+            ┌─────────────────────────┐
+            │  5. EXTRACT & PRIORITIZE│
             │                         │
             │  extract-issues          │
             └─────────────────────────┘
