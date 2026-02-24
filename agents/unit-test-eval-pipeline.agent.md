@@ -195,7 +195,24 @@ If critical information is still missing, ask the user:
 
 4. Optionally ask for target_source if the user hasn't mentioned it.
 
-Once intake is complete, proceed with Phase A using the collected parameters.
+Once intake is complete, proceed with Phase 0b (path validation) before starting the pipeline.
+
+### Phase 0b: Upfront Path Validation
+
+Before running any skills, validate and touch all directories the pipeline will need. This batches the folder-access approvals into one upfront step instead of interrupting the user during each skill.
+
+1. List all paths that will be accessed during this run:
+   - repo_path
+   - copilot_run_path (if applicable)
+   - testingagent_run_path (if applicable)
+   - ./artifacts/ output directory
+2. For each path, verify it exists by listing its contents (e.g., `Get-ChildItem <path> -ErrorAction Stop | Select-Object -First 1`).
+3. Create the ./artifacts/ directory if it does not exist.
+4. If any required path is invalid, stop and report immediately — do not proceed to Phase A.
+
+This ensures all permission prompts happen together at the start of the run.
+
+Proceed with Phase A using the collected parameters.
 
 ### Phase A: Collect (Step 1)
 
