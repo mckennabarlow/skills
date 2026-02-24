@@ -35,11 +35,11 @@ Assess the tests from this copilot run: <folder>
 
 ### What you get
 
-A single markdown report saved to a timestamped folder (`MMDDYYYY-CopilotTestReview-Run<N>`):
+A single markdown report saved to `<artifact_root>/reviews/`:
 
 | Report | Description |
 |--------|-------------|
-| `MMDDYYYY-CopilotAgent-<Project>.md` | Full analysis: timeline, errors, test quality assessment, and suggested issues |
+| `MMDDYYYY-CopilotAgent-<Project>-Run<N>.md` | Full analysis: timeline, errors, test quality assessment, and suggested issues |
 
 ### What the folder should contain
 
@@ -68,31 +68,27 @@ You will be provided:
 - **Coverage artifact (optional)** — a `coverage.cobertura.xml` file captured during the run. If missing, ask the user whether they can collect coverage using `dotnet test` with `--collect "XPlat Code Coverage"` and copy the resulting coverage file into the run artifacts folder.
 - **Model used** — read from `run-metadata.md` first. Only if not available, auto-extract from the Copilot diagnostic log (`PreferredModelFamily=`). Only ask the user as a last resort.
 - **Target source file** — the original `.cs` source file that was targeted for test generation. Ask the user for the file path. If not provided, extract the path from the log content (look for `#file:` mentions in the prompt, `SemanticSearchStrategy` entries, or `FileEditingState` references). Read this file to understand the actual API surface, branches, constructors, and logic — this is essential for accurate test quality classification, coverage gap analysis, and identifying missing test scenarios.
-- **Output directory** — present the default location to the user and ask them to confirm or pick a different folder. Remember their choice for future runs of this skill.
-  - **Default:** the same folder as the Copilot input folder
-  - **Confirm:** "I'll save the report to `<default path>`. Is that OK, or would you prefer a different location?"
-  - **Remember:** If the user picks a custom location, store it and use it as the new default for subsequent runs. If they confirm the default, continue using it.
+- **Output directory** — use the centralized artifact root for all output.
+  - **Read artifact root:** Check `C:\Users\cathys\.copilot\unittest-artifact-root.txt` for the saved preference. If the file doesn't exist, ask the user where to save artifacts and save their choice there.
+  - **Output location:** `<artifact_root>/reviews/`
+  - Create the `reviews/` directory if it doesn't exist.
 
 ---
 
 ## Output
 
-Generate one `.md` file inside a **new subfolder** within the output directory.
-
-### Output Folder
-
-- **Folder name format:** `MMDDYYYY-CopilotTestReview-Run<N>`
-- `MMDDYYYY` — the date the evaluation log was created (extract from log timestamps)
-- `<N>` — a run number starting at 1, incremented for each additional run on the same day
-- **Check for existing folders** in the output directory matching `MMDDYYYY-CopilotTestReview-Run*`. If none exist, use `Run1`. If `Run1` already exists, use `Run2`, etc.
+Generate one `.md` file inside the `<artifact_root>/reviews/` directory. No subfolder is created per review — the run number is included in the filename.
 
 ### File Name
 
+- **Format:** `MMDDYYYY-CopilotAgent-<ProjectName>-Run<N>.md`
+- `MMDDYYYY` — the date the evaluation log was created (extract from log timestamps)
+- `<N>` — a run number starting at 1, incremented for each additional run on the same day
+- **Check for existing files** in the reviews directory matching `MMDDYYYY-CopilotAgent-*-Run*`. If none exist, use `Run1`. If `Run1` already exists, use `Run2`, etc.
+
 Extract `<ProjectName>` from the log — use the solution name, repo folder name, or target project name found in the log. Do not hardcode any specific project or file name.
 
-**Format:** `MMDDYYYY-CopilotAgent-<ProjectName>.md`
-
-**Example:** `02062026-CopilotTestReview-Run1/02062026-CopilotAgent-eShop.md`
+**Example:** `reviews/02062026-CopilotAgent-eShop-Run1.md`
 
 ---
 

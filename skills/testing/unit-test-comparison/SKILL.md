@@ -34,7 +34,7 @@ Assess the test quality from these runs: <folder1> and <folder2>
 
 ### What you get
 
-Three markdown reports saved to a timestamped folder (`MMDDYYYY-UnitTest-Run<N>`):
+Three markdown reports saved to `<artifact_root>/comparisons/MMDDYYYY-<Project>-Run<N>/`:
 
 | Report | Description |
 |--------|-------------|
@@ -72,25 +72,26 @@ You will be provided:
 - **File matching** — use the folder each file lives in to determine which run produced it (Testing Agent vs. Copilot). Do not rely on file names to distinguish runs. If one folder contains files not present in the other, ignore the extra files — only evaluate files that are common to both or relevant to that run's own report.
 - **Model used** — auto-extract from the Testing Agent log (`model:` on the `Starting test generation with scope` line) or from the Copilot diagnostic log (`PreferredModelFamily=` in the config section). Only ask the user if neither source contains the model. Include in run metadata for both reports and in the comparison table.
 - **Target source file** — the original `.cs` source file that was targeted for test generation. Ask the user for the file path. If not provided, extract the path from the log content (look for `#file:` mentions in the prompt or `Mapped source file` entries). Read this file to understand the actual API surface, branches, constructors, and logic — this is essential for accurate test quality classification and coverage gap analysis.
-- **Output directory** — present the default location to the user and ask them to confirm or pick a different folder. Remember their choice for future runs of this skill.
-  - **Default:** the same folder as the Testing Agent input folder
-  - **Confirm:** "I'll save the reports to `<default path>`. Is that OK, or would you prefer a different location?"
-  - **Remember:** If the user picks a custom location, store it and use it as the new default for subsequent runs. If they confirm the default, continue using it.
+- **Output directory** — use the centralized artifact root for all output.
+  - **Read artifact root:** Check `C:\Users\cathys\.copilot\unittest-artifact-root.txt` for the saved preference. If the file doesn't exist, ask the user where to save artifacts and save their choice there.
+  - **Output location:** `<artifact_root>/comparisons/`
+  - Create the `comparisons/` directory if it doesn't exist.
 
 ---
 
 ## Output Files
 
-Generate three `.md` files inside a **new subfolder** within the output directory.
+Generate three `.md` files inside a **new subfolder** within the `<artifact_root>/comparisons/` directory.
 
 ### Output Folder
 
-- **Folder name format:** `MMDDYYYY-UnitTest-Run<N>`
+- **Folder name format:** `MMDDYYYY-<ProjectName>-Run<N>`
 - `MMDDYYYY` — the date the evaluation logs were created (extract from log timestamps)
+- `<ProjectName>` — extracted from the log (solution name, repo folder name, or target project)
 - `<N>` — a run number starting at 1, incremented for each additional run on the same day
-- **Check for existing folders** in the output directory matching `MMDDYYYY-UnitTest-Run*`. If none exist, use `Run1`. If `Run1` already exists, use `Run2`, etc.
+- **Check for existing folders** in the comparisons directory matching `MMDDYYYY-<ProjectName>-Run*`. If none exist, use `Run1`. If `Run1` already exists, use `Run2`, etc.
 
-**Example folder:** `02062026-UnitTest-Run1`
+**Example folder:** `comparisons/02062026-eShop-Run1`
 
 ### File Names
 
@@ -102,7 +103,7 @@ Extract `<ProjectName>` from the log — use the solution name, repo folder name
 | GH Copilot Agent Mode report | `MMDDYYYY-GHCopilotAgent-<ProjectName>.md` |
 | Comparison report | `MMDDYYYY-UnitTestEvaluation-<ProjectName>.md` |
 
-**Example:** `02062026-UnitTest-Run1\02062026-UnitTestEvaluation-eShop.md`
+**Example:** `comparisons/02062026-eShop-Run1/02062026-UnitTestEvaluation-eShop.md`
 
 ---
 

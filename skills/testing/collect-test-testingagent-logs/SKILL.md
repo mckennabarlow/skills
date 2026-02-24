@@ -32,7 +32,7 @@ Capture testing agent run output
 
 ### What you get
 
-A timestamped folder under `./artifacts/test-runs-testingagent/<YYYYMMDD-HHMMSS>/` containing:
+A timestamped folder under `<artifact_root>/testingagent/<YYYYMMDD-HHMMSS>/` containing:
 
 | File | Description |
 |------|-------------|
@@ -93,7 +93,14 @@ Execute the following steps in order using PowerShell from the repo root.
 ```powershell
 $repoRoot = Get-Location
 $ts = Get-Date -Format "yyyyMMdd-HHmmss"
-$outDir = Join-Path $repoRoot "artifacts/test-runs-testingagent/$ts"
+# Read artifact root from saved preference; fall back to ./artifacts if not set
+$artifactRootFile = Join-Path $env:USERPROFILE ".copilot\unittest-artifact-root.txt"
+if (Test-Path $artifactRootFile) {
+  $artifactRoot = (Get-Content $artifactRootFile -Raw).Trim()
+} else {
+  $artifactRoot = Join-Path $repoRoot "artifacts"
+}
+$outDir = Join-Path $artifactRoot "testingagent/$ts"
 New-Item -ItemType Directory -Force -Path $outDir | Out-Null
 ```
 

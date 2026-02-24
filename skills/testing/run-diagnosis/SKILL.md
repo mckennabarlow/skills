@@ -57,10 +57,18 @@ Given the user's path, run ONE PowerShell command to find the log and detect too
 ```powershell
 $path = "<user-provided-path>"
 
+# Read artifact root from saved preference
+$artifactRootFile = Join-Path $env:USERPROFILE ".copilot\unittest-artifact-root.txt"
+if (Test-Path $artifactRootFile) {
+  $artifactRoot = (Get-Content $artifactRootFile -Raw).Trim()
+} else {
+  $artifactRoot = Join-Path $path "artifacts"
+}
+
 # If it's a repo root, find latest artifacts folder
 $artDir = $null
-foreach ($sub in @("artifacts\test-runs-testingagent", "artifacts\test-runs-copilot")) {
-    $d = Get-ChildItem -Path (Join-Path $path $sub) -Directory -ErrorAction SilentlyContinue |
+foreach ($sub in @("testingagent", "copilot")) {
+    $d = Get-ChildItem -Path (Join-Path $artifactRoot $sub) -Directory -ErrorAction SilentlyContinue |
         Sort-Object Name -Descending | Select-Object -First 1
     if ($d -and (!$artDir -or $d.Name -gt $artDir.Name)) { $artDir = $d }
 }

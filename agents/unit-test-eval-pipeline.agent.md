@@ -122,8 +122,24 @@ Rules:
 ## Outputs
 
 Do not invent a new output schema in this agent yet.
-Rely on each skill's standard outputs in ./artifacts/ and any markdown reports the skills generate.
+Rely on each skill's standard outputs under `artifact_root` and any markdown reports the skills generate.
 At the end, print a short "What ran" summary and list the artifact folders used.
+
+### Artifact root structure
+
+All outputs are written under the user's configured `artifact_root`:
+
+| Subfolder | Written by | Contents |
+|-----------|-----------|----------|
+| `copilot/<timestamp>/` | collect-test-copilot-logs | Raw run data (TRX, logs, coverage, test files, metadata) |
+| `testingagent/<timestamp>/` | collect-test-testingagent-logs | Raw run data (TRX, logs, coverage, test files, metadata) |
+| `reviews/` | copilot-test-review, testing-agent-review | Flat review report files |
+| `comparisons/<MMDDYYYY-Project-RunN>/` | unit-test-comparison | 3 comparison report files per run |
+| `llmefficiency/` | llm-efficiency | Copies: `llm-efficiency-copilot.md`, `llm-efficiency-testingagent.md` |
+| `backlogs/` | extract-issues | `backlog-testing-agent.md`, `backlog-copilot-agent.md`, `history/` |
+| `pre-run/` | pre-run-analysis | Pre-run checklist reports |
+
+Run-diagnosis and llm-efficiency also write their reports directly into the run folder (`copilot/<ts>/` or `testingagent/<ts>/`).
 
 ## Important rules
 
@@ -233,8 +249,8 @@ Proceed with Phase A using the collected parameters.
    - If testingagent_run_path is provided, use skill /collect-test-testingagent-logs with testingagent_run_path.
    - Otherwise, use skill /collect-test-testingagent-logs with repo_path.
 4. Determine run folders:
-   - Set copilot_run_folder to the most recent ./artifacts/test-runs-copilot/<timestamp>/ created by the collect skill (if any).
-   - Set testingagent_run_folder to the most recent ./artifacts/test-runs-testingagent/<timestamp>/ created by the collect skill (if any).
+   - Set copilot_run_folder to the most recent `<artifact_root>/copilot/<timestamp>/` created by the collect skill (if any).
+   - Set testingagent_run_folder to the most recent `<artifact_root>/testingagent/<timestamp>/` created by the collect skill (if any).
 
 If neither run folder exists after collection, stop and report what is missing.
 
