@@ -1,6 +1,6 @@
 # WorkIQ Communications Skills
 
-A collection of [GitHub Copilot Skills](https://docs.github.com/en/copilot/copilot-extensions/copilot-skills) for generating return-to-work briefings using [WorkIQ](https://github.com/microsoft/work-iq-mcp) (Microsoft 365 Copilot). These skills extend GitHub Copilot CLI with capabilities for scanning your email, Teams messages, meetings, meeting recordings, and documents to build comprehensive catch-up briefings when you return from time away.
+A collection of [GitHub Copilot Skills](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/create-skills) for generating return-to-work briefings using [WorkIQ](https://github.com/microsoft/work-iq-mcp) (Microsoft 365 Copilot). These skills extend GitHub Copilot CLI with capabilities for scanning your email, Teams messages, meetings, meeting recordings, and documents to build comprehensive catch-up briefings when you return from time away.
 
 > **⚠️ Prototype Notice:** All skills in this category are experimental prototypes. They are under active development, may change without notice, and are not intended for production use.
 
