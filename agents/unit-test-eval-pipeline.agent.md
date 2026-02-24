@@ -92,10 +92,10 @@ Run inputs:
 
 Pipeline plan:
   Step 1 Collect: <yes/no per source>
-  Step 1b Diagnose: <enabled/disabled>
+  Step 1b Diagnose: <yes/no>
   Step 2 Reviews: <copilot | testingagent | both | none>
-  Step 3 Compare: <enabled/disabled>
-  Step 3 LLM efficiency: <enabled/disabled>
+  Step 3 Compare: <yes/no>
+  Step 3 LLM efficiency: <yes/no>
 
 Then start execution.
 
