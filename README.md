@@ -1,6 +1,6 @@
 # GitHub Copilot Skills & Agents
 
-A collection of prototype [GitHub Copilot Skills](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/create-skills) and [Custom Agents](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/coding-agent/create-custom-agents) that extend GitHub Copilot CLI with specialized capabilities. Skills are organized by category under the `skills/` folder, and agents live in `.github/agents/`.
+A collection of prototype [GitHub Copilot Skills](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/create-skills) and [Custom Agents](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/coding-agent/create-custom-agents) that extend GitHub Copilot CLI with specialized capabilities. Skills are organized by category under the `skills/` folder, and agents live in `agents/`.
 
 > **⚠️ Prototype Notice:** All skills and agents in this repo are experimental prototypes. They are under active development, may change without notice, and are not intended for production use.
 
