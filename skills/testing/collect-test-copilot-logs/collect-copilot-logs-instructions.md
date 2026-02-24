@@ -21,21 +21,22 @@ Goal:
 - Produce a TRX test results file
 - Capture full test console output
 - Produce a code coverage report (Cobertura XML)
-- Store all artifacts under: ./artifacts/test-runs-copilot/<timestamp>/
+- Store all artifacts under: `<run_root>/copilot/` (pipeline) or `./artifacts/test-runs-copilot/<timestamp>/` (standalone)
 
 Rules:
 - Do not modify product or test code.
 - Do not assume a fixed solution or test project name.
 - If one or more .sln files exist at repo root, prefer running at the solution level.
 - Otherwise, run tests from repo root and allow discovery.
-- All artifacts must be copied into the timestamped output folder.
+- All artifacts must be copied into the output folder.
 
 Steps (PowerShell, run from repo root):
 
 1. Treat the directory containing this file as the repo root.
 
-2. Create a timestamped artifacts folder under:
-  ./artifacts/test-runs-copilot/<YYYYMMDD-HHMMSS>/
+2. Create an artifacts folder:
+  - If `run_root` is provided: `<run_root>/copilot/`
+  - Otherwise: `./artifacts/test-runs-copilot/<YYYYMMDD-HHMMSS>/`
 
 3. Run tests with:
    - TRX logging enabled

@@ -31,7 +31,7 @@ Capture Copilot test run output
 
 ### What you get
 
-A timestamped folder under `<artifact_root>/copilot/<YYYYMMDD-HHMMSS>/` containing:
+A folder at `<run_root>/copilot/` (when invoked by the pipeline) or `<artifact_root>/copilot/<YYYYMMDD-HHMMSS>/` (when run standalone) containing:
 
 | File | Description |
 |------|-------------|
@@ -91,14 +91,19 @@ Execute the following steps in order using PowerShell from the repo root.
 ```powershell
 $repoRoot = Get-Location
 $ts = Get-Date -Format "yyyyMMdd-HHmmss"
-# Read artifact root from saved preference; fall back to ./artifacts if not set
-$artifactRootFile = Join-Path $env:USERPROFILE ".copilot\unittest-artifact-root.txt"
-if (Test-Path $artifactRootFile) {
-  $artifactRoot = (Get-Content $artifactRootFile -Raw).Trim()
+# If run_root is provided by the pipeline, write directly to run_root/copilot/
+# Otherwise, fall back to artifact_root/copilot/<timestamp>/ for standalone use
+if ($run_root) {
+  $outDir = Join-Path $run_root "copilot"
 } else {
-  $artifactRoot = Join-Path $repoRoot "artifacts"
+  $artifactRootFile = Join-Path $env:USERPROFILE ".copilot\unittest-artifact-root.txt"
+  if (Test-Path $artifactRootFile) {
+    $artifactRoot = (Get-Content $artifactRootFile -Raw).Trim()
+  } else {
+    $artifactRoot = Join-Path $repoRoot "artifacts"
+  }
+  $outDir = Join-Path $artifactRoot "copilot/$ts"
 }
-$outDir = Join-Path $artifactRoot "copilot/$ts"
 New-Item -ItemType Directory -Force -Path $outDir | Out-Null
 ```
 
