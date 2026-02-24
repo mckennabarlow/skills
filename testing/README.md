@@ -1,4 +1,4 @@
-# Testing Skills
+# .NET Testing Skills
 
 A collection of [Copilot Skills](https://docs.github.com/en/copilot/copilot-extensions/copilot-skills) for reviewing and comparing unit test output from the .NET Testing Agent and GH Copilot Agent Mode. These skills extend GitHub Copilot CLI with capabilities for collecting test artifacts, analyzing test quality, and producing structured evaluation reports.
 
