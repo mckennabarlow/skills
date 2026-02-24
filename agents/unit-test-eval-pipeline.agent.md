@@ -230,7 +230,9 @@ Do not run it unless the user explicitly asks.
 
 ### Phase 0: Usage Banner + User Intake
 
-**Before doing anything else**, print the following usage banner exactly:
+**Only print the usage banner when the user invokes the agent without specifying a mode** (e.g., just `@unit-test-eval-pipeline` with no parameters, or asks "how to use", "help", "show options"). If the user's message already includes a mode (full, quick, diagnose) or clearly describes what they want to do, **skip the banner** and go straight to intake.
+
+Print the following usage banner when applicable:
 
 ```
 ╔══════════════════════════════════════════════════════════════╗
@@ -255,10 +257,20 @@ Do not run it unless the user explicitly asks.
 ║    "Quick diagnose of the Testing Agent run"                 ║
 ║    "Diagnose my run at C:\repos\myapp"                       ║
 ║                                                              ║
-║  MODES                                                       ║
+║  MODES (run for any source: copilot, testingagent, or both)   ║
 ║    full     →  collect → diagnose → review → compare/llm      ║
 ║    quick    →  collect + diagnose                             ║
 ║    diagnose →  auto-detect → collect → review → diagnose      ║
+║                                                              ║
+║  SOURCE × MODE COMBINATIONS                                  ║
+║    full + copilot       deep dive on one Copilot run          ║
+║    full + testingagent  deep dive on one Testing Agent run    ║
+║    full + both          deep dive + side-by-side comparison   ║
+║    quick + <any>        fast triage (collect + diagnose only) ║
+║    diagnose + <auto>    auto-detect source, review + diagnose ║
+║                                                              ║
+║  Note: compare only runs when source=both (needs two runs).  ║
+║  All other steps apply per-source independently.             ║
 ║                                                              ║
 ╚══════════════════════════════════════════════════════════════╝
 ```
