@@ -84,22 +84,25 @@ Parse all issue headings in the markdown. These follow the pattern:
 ### Issue N (ROI: HIGH|MEDIUM|LOW): <issue title text>
 ```
 
-If the user already specified an issue number, use that issue. Otherwise, list all issues found with their number, ROI level, and title, and ask the user to pick one. Example listing:
+If the user already specified an issue number, use that issue. Otherwise, list all issues found with their number, ROI level, and title, **plus an "all" option**, and ask the user to pick one. Example listing:
 
 ```
 Found 2 issues in the diagnosis:
   1. (ROI: HIGH) Generated csproj references packages missing from Directory.Packages.props
   2. (ROI: MEDIUM) EF/ASP.NET version mismatch in Directory.Packages.props
-Which issue number would you like to file?
+  all. File ONE consolidated work item covering all issues
+Which issue number would you like to file? (1, 2, or all)
 ```
 
-**Only one issue is filed per invocation.** If the user wants to file multiple issues, they should invoke the skill again for each one.
+**Only one work item is filed per area path per invocation.** If the user picks a single issue and wants to file others, they should invoke the skill again. If the user picks "all", a single consolidated work item is created (per area path) that covers every issue — see Step 4b.
 
 ### Step 3: Collect area paths
 
 Ask the user which area path(s) to file the work item(s) under. They may provide one or more. If they don't specify any, use the default: `DevDiv\NET Tools Prague\Code Testing Agent`.
 
 ### Step 4: Extract the Title and Priority
+
+#### Single-issue path (user picked a specific issue number)
 
 From the selected issue heading, extract:
 
@@ -116,6 +119,22 @@ From the selected issue heading, extract:
 | LOW | 3 |
 
 If no ROI level is found, default to Priority **2**.
+
+#### All-issues path (user picked "all") — Step 4b
+
+When the user chooses "all":
+
+1. **Generate a suggested summary title.** Read the `## Outcome` line (e.g., "❌ No tests generated") and all issue titles to craft a concise summary. The title should capture the overall result and the most impactful root cause(s). Example:
+   - Outcome: `❌ No tests generated`, Issues: `file_search loop`, `8-minute stall`, `Workspace path null`
+   - Suggested title: *"Copilot agent produced zero tests — stuck in file_search loop with 8-min stall"*
+
+2. **Present the suggested title to the user and ask them to confirm or edit it** before proceeding. Example:
+   ```
+   Suggested title: "Copilot agent produced zero tests — stuck in file_search loop with 8-min stall"
+   Use this title, or provide your own?
+   ```
+
+3. **Priority:** Use the **highest** ROI level across all issues (e.g., if any issue is HIGH, priority = 1).
 
 ### Step 5: Create work items (one per area path)
 
@@ -162,6 +181,13 @@ Example with two work items:
 > - ✅ VS ReportService crash terminates run | `DevDiv\VS Core\Extensibility\ServiceHub` | [#2726773](https://devdiv.visualstudio.com/DevDiv/_workitems?id=2726773)
 ```
 
+If the user picked "all", use the confirmed summary title instead of a single issue title:
+
+```
+> **Issues logged:**
+> - ✅ Copilot agent produced zero tests — stuck in file_search loop with 8-min stall | `DevDiv\NET Tools Prague\Code Testing Agent` | [#2726734](https://devdiv.visualstudio.com/DevDiv/_workitems?id=2726734)
+```
+
 Use the `edit` tool to insert or append this block. Ensure a blank line separates it from `## Run Metadata`.
 
 ### Step 7: Report results
@@ -176,7 +202,7 @@ Tell the user:
 
 - Do not modify the markdown file contents other than inserting/appending the issues logged block in Step 6.
 - If the markdown file has no issue headings, use the top-level heading (e.g., `# Run Diagnosis — ...`) as a fallback title.
-- Only one issue is filed per invocation. If the user wants to file multiple issues, they must invoke the skill separately for each.
+- Only one issue (or "all" as a consolidated item) is filed per invocation. If the user wants to file individual issues separately, they must invoke the skill once per issue.
 - The Description field should be left empty. All diagnosis content goes into the Discussion as a markdown comment.
 - If a work item creation fails, report the error, skip that area path, and continue with remaining area paths. Only update the markdown with successfully created work items.
 - When appending to an existing `> **Issues logged:**` block, add new bullets at the end — do not duplicate the header line.
