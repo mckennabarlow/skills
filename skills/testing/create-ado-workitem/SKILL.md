@@ -40,12 +40,6 @@ Automate creation of Azure DevOps User Story work items from run-diagnosis markd
 
 ---
 
-## Dependencies
-
-- **Azure DevOps MCP Server** _(internal only)_ — This skill requires the Azure DevOps MCP server to create work items and add comments. Install it from: [microsoft/azure-devops-mcp](https://github.com/microsoft/azure-devops-mcp/)
-
----
-
 ## Inputs
 
 - **Markdown file path** — Ask the user for the path to the run-diagnosis markdown file. If not provided, search the current working directory recursively for a file named `run-diagnosis.md`.
@@ -163,29 +157,33 @@ After **each** work item is created, call the `ado-wit_add_work_item_comment` MC
 
 ### Step 6: Update the source markdown file
 
-After **all** work items are created successfully, add a bullet list of logged issues to the source markdown file, inserted just before the `## Run Metadata` heading. If a previous `> **Issues logged:**` block already exists, append the new bullets to it rather than creating a duplicate block.
+After **all** work items are created successfully, add a logged-issue block to the source markdown file, inserted just before the `## Run Metadata` heading. If previous `> **Bug for Issue #...` lines already exist, append the new lines after them rather than creating duplicates.
 
 The format is:
 
 ```
-> **Issues logged:**
-> - ✅ <Title> | `<Area Path>` | [#<ID>](https://devdiv.visualstudio.com/DevDiv/_workitems?id=<ID>)
-> - ✅ <Title> | `<Area Path>` | [#<ID>](https://devdiv.visualstudio.com/DevDiv/_workitems?id=<ID>)
+> - ✅ **Bug for Issue #<N>:** [#<ID>](https://devdiv.visualstudio.com/DevDiv/_workitems?id=<ID>)
+>   - <Title>
+>   - `<Area Path>`
 ```
 
-Example with two work items:
+If the same issue was filed to multiple area paths, add one entry per area path:
 
 ```
-> **Issues logged:**
-> - ✅ VS ReportService crash terminates run | `DevDiv\NET Tools Prague\Code Testing Agent` | [#2726734](https://devdiv.visualstudio.com/DevDiv/_workitems?id=2726734)
-> - ✅ VS ReportService crash terminates run | `DevDiv\VS Core\Extensibility\ServiceHub` | [#2726773](https://devdiv.visualstudio.com/DevDiv/_workitems?id=2726773)
+> - ✅ **Bug for Issue #1:** [#2726734](https://devdiv.visualstudio.com/DevDiv/_workitems?id=2726734)
+>   - VS ReportService crash terminates run
+>   - `DevDiv\NET Tools Prague\Code Testing Agent`
+> - ✅ **Bug for Issue #1:** [#2726773](https://devdiv.visualstudio.com/DevDiv/_workitems?id=2726773)
+>   - VS ReportService crash terminates run
+>   - `DevDiv\VS Core\Extensibility\ServiceHub`
 ```
 
-If the user picked "all", use the confirmed summary title instead of a single issue title:
+If the user picked "all", use `All Issues` instead of a specific issue number:
 
 ```
-> **Issues logged:**
-> - ✅ Copilot agent produced zero tests — stuck in file_search loop with 8-min stall | `DevDiv\NET Tools Prague\Code Testing Agent` | [#2726734](https://devdiv.visualstudio.com/DevDiv/_workitems?id=2726734)
+> - ✅ **Bug for All Issues:** [#2726734](https://devdiv.visualstudio.com/DevDiv/_workitems?id=2726734)
+>   - Copilot agent produced zero tests — stuck in file_search loop with 8-min stall
+>   - `DevDiv\NET Tools Prague\Code Testing Agent`
 ```
 
 Use the `edit` tool to insert or append this block. Ensure a blank line separates it from `## Run Metadata`.
@@ -205,7 +203,7 @@ Tell the user:
 - Only one issue (or "all" as a consolidated item) is filed per invocation. If the user wants to file individual issues separately, they must invoke the skill once per issue.
 - The Description field should be left empty. All diagnosis content goes into the Discussion as a markdown comment.
 - If a work item creation fails, report the error, skip that area path, and continue with remaining area paths. Only update the markdown with successfully created work items.
-- When appending to an existing `> **Issues logged:**` block, add new bullets at the end — do not duplicate the header line.
+- When appending to existing `> **Bug for Issue #...` lines, add new lines after the last one — do not duplicate existing entries.
 
 ---
 
