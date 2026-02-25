@@ -63,18 +63,9 @@ Same as `run-diagnosis` skill — find the latest artifacts folder, detect Testi
 
 ```powershell
 $path = "<user-provided-path>"
-
-# Read artifact root from saved preference
-$artifactRootFile = Join-Path $env:USERPROFILE ".copilot\unittest-artifact-root.txt"
-if (Test-Path $artifactRootFile) {
-  $artifactRoot = (Get-Content $artifactRootFile -Raw).Trim()
-} else {
-  $artifactRoot = Join-Path $path "artifacts"
-}
-
 $artDir = $null
-foreach ($sub in @("testingagent", "copilot")) {
-    $d = Get-ChildItem -Path (Join-Path $artifactRoot $sub) -Directory -ErrorAction SilentlyContinue |
+foreach ($sub in @("artifacts\test-runs-testingagent", "artifacts\test-runs-copilot")) {
+    $d = Get-ChildItem -Path (Join-Path $path $sub) -Directory -ErrorAction SilentlyContinue |
         Sort-Object Name -Descending | Select-Object -First 1
     if ($d -and (!$artDir -or $d.Name -gt $artDir.Name)) { $artDir = $d }
 }
@@ -111,6 +102,25 @@ This returns all LLM-related lines in one pass. From the results, extract:
 - **Fix iterations** — count `fix cycle` / `Iteration` lines (retry loops)
 - **Projects processed** — count `Processing project` (scope breadth)
 
+#### Cross-log token extraction for Testing Agent runs
+
+The Testing Agent log (`codetestingagent.log`) often reports `HasUsage: False`, meaning token counts are unavailable from that log. However, **the Copilot diagnostic log (`copilot-output.log`) captures token usage for the same LLM calls** because it sits at a higher layer in the VS/VS Code Copilot infrastructure.
+
+**Always check for `copilot-output.log`** in the artifacts folder, even when the primary tool is Testing Agent. If found, grep it for token data:
+
+```
+Pattern: "InputTokenCount|OutputTokenCount|TotalTokenCount|cached_tokens|EventType\(9\)"
+```
+
+From the results, extract:
+- **Token totals** — sum `InputTokenCount`, `OutputTokenCount`, `TotalTokenCount`
+- **Cached tokens** — sum `cached_tokens` values
+- **Cache hit rate** — cached / total input tokens
+
+If token data is found in the Copilot log, include it in the report summary table under a "Token Usage (from Copilot log)" section. This replaces the "Not available" placeholder that would otherwise appear when the TA log lacks usage data.
+
+**Correlation:** The Copilot log may contain LLM calls from other Copilot features (e.g., completions, chat) in addition to the Testing Agent calls. To correlate, match by timestamp window — only count token data from calls that fall within the Testing Agent run's start/end timestamps (from `run-metadata.md` or the TA log header/footer).
+
 #### Copilot grep — single call:
 
 ```
@@ -140,6 +150,7 @@ Using the extracted data, check for these patterns. Only report patterns that ar
 | **Redundant builds** | Multiple `Build:` lines with same result | Estimate: time in redundant build+LLM cycles |
 | **Cancelled mid-generation** | `Cancellation triggered` while LLM calls were in progress | Estimate: all calls after the last useful output |
 | **Slow model choice** | Per-call duration averaging > 30s with a premium model | Suggest: faster model for iterative fix cycles |
+| **No smart model switching** | Same premium model used for all calls, including simple tasks (prompt analysis, classification, insight consolidation) that produce short outputs (<2K chars) | Estimate cost using model pricing: calculate current cost at premium rate, then re-price eligible calls at a cheaper model rate. Report the delta as potential savings. |
 
 #### Waste Patterns — Copilot Agent Mode
 
@@ -167,66 +178,166 @@ Compose and save the report, then print it. Use this format:
 | **Model** | <from run-metadata.md, or extract from log> |
 | **VS Version** | <from run-metadata.md, or auto-extract from Copilot log> |
 | **Copilot Chat Version** | <from run-metadata.md, or auto-extract from Copilot log, or "Unknown"> |
-| **Total LLM calls** | <N> |
-| **Total duration** | <X min Y sec> |
-| **Total tokens** | <N input + N output = N total> (Copilot only) |
-| **Cached tokens** | <N (X% of input)> (Copilot only) |
-| **Avg call duration** | <X sec> (Testing Agent only) |
-| **Longest call** | <X sec — context of what it was doing> |
-| **Fix iterations** | <N> |
-| **Projects in scope** | <N total, M produced tests> |
+| **Total LLM calls (TA log)** | <N> primary agent calls (Testing Agent only) |
+| **Total LLM calls (Copilot log)** | <N> API calls (includes tool calls, type resolution) |
+| **Total run duration** | <X min Y sec> |
+| **Aggregate LLM time** | <~X min Y sec> (parallelized across threads) (Testing Agent only) |
+| **Total tokens (from Copilot log)** | <N> input + <N> output = **<N> total** |
+| **Cached tokens** | <N> (<X%> of input) |
+| **Estimated run cost*** | 💸 **$X.XX** (at <model> pricing) — [see Cost Methodology](#cost-methodology) |
+| **Avg call duration** | <X sec> (primary calls), varies for tool calls (Testing Agent only) |
+| **Longest call** | <X sec> — <context of what it was doing> |
+| **Fix iterations** | <N> explicit fix cycles (<note if builds suggest implicit loops>) |
+| **Projects in scope** | <N> total, <M> produced tests |
+| **get_type_info calls** | <N> (Testing Agent only) |
+| **Build count** | <N> (Testing Agent only) |
+| **Test executions** | <N> (<M> Success: True, <K> Success: False) |
+
+Notes on the summary table:
+- For Testing Agent runs, show both TA log call count (primary agent calls) and Copilot log call count (total API calls including tool/type resolution). The Copilot log count is typically much higher.
+- For Copilot Agent Mode runs, there is only one log — show `Total LLM calls` as a single row.
+- Omit rows that don't apply (e.g., `get_type_info calls` for Copilot runs, `Aggregate LLM time` for Copilot runs).
+
+### LLM Call Breakdown (<N> primary agent calls from <TA/Copilot> log)
+
+| # | Agent | Duration | Response Length | Notes |
+|---|-------|----------|----------------|-------|
+| 1 | <AgentName> | <Xs / Xm Xs> | <N> chars | <brief note: prompt analysis, code gen, consolidation, etc.> |
+| 2 | ... | ... | ... | ... |
+
+(List each primary LLM call from the agent log. For Testing Agent, these are the "Starting LLM call" entries. For Copilot, these are the conversation turns. Bold the longest call. Include the agent name, duration, response length in characters, and a brief note on what the call was doing.)
+
+### Token Distribution by Call Category (from Copilot log — <N> API calls)
+
+| Category | Calls | Input Tokens | Output Tokens | % of Input | % of Cost |
+|----------|-------|-------------|---------------|-----------|-----------|
+| Tool/Type resolution (output ≤ 200) | <N> | <N> | <N> | <X%> | <X%> |
+| Code generation (output > 500) | <N> | <N> | <N> | <X%> | <X%> |
+| Medium tasks (output 201–500) | <N> | <N> | <N> | <X%> | <X%> |
+| **Total** | **<N>** | **<N>** | **<N>** | **100%** | **100%** |
+
+(Include this table when token data is available from the Copilot log. Categorize by output token count as a proxy for call complexity. This reveals where tokens and cost concentrate.)
 
 ## Efficiency Verdict: <emoji> <one-line summary>
 
-<1-3 sentences: was this run efficient, wasteful, or somewhere in between? Quantify the waste.>
+<1-3 sentences: was this run efficient, wasteful, or somewhere in between? Quantify the waste. Reference the dominant cost driver and the potential savings percentage.>
 
 ## Waste Findings
 
 ### Finding N: <title>
 
 - **What happened:** <describe the waste pattern — cite log evidence>
-- **Estimated waste:** <N calls / N tokens / N min that could be saved>
+- **Estimated waste:** <N calls / N tokens / $X.XX / N min that could be saved>
 - **Reduction strategy:** <concrete, actionable change>
 - **Where to fix:** <`LLM prompt/model` | `Agent orchestrator` | `User workflow` | etc.>
 
-(Repeat for each finding. Max 5.)
+(Repeat for each finding. Max 5. Include dollar amounts when token data is available. Use 💸 emoji prefix on the finding title when the finding has a quantified dollar waste.)
 
-## Cost Estimate (<model name>)
+## Cost Estimate 💸
 
-| Component | Tokens | Est. Cost |
-|-----------|--------|-----------|
-| Input tokens (<N>K) | <N> | ~$<X.XX> |
-| Output tokens (<N>K) | <N> | ~$<X.XX> |
-| **Total** | <N> | **~$<X.XX>** |
-| **Per test** | <N> | **~$<X.XX>** |
-| **Per working test** | <N> | **~$<X.XX>** |
+| Category | Calls | Input Tokens | Output Tokens | Current (<model>) | Optimized | Savings |
+|----------|-------|-------------|---------------|-------------------|-----------|---------|
+| Code generation | <N> | <N> | <N> | $X.XX | $X.XX (<model>) | $0.00 |
+| Tool/type resolution | <N> | <N> | <N> | $X.XX | $X.XX (<cheaper model>) | **$X.XX** |
+| Medium tasks | <N> | <N> | <N> | $X.XX | $X.XX (<mid-tier model>) | **$X.XX** |
+| **Total** | **<N>** | **<N>** | **<N>** | **$X.XX** | **$X.XX** | **$X.XX (Y%)** |
 
-#### Cost Methodology
+(Include this section whenever token data is available or can be estimated from response lengths. Split input and output tokens per category. Show which model each category would use in the optimized column.)
 
-- **Token source:** <describe where tokens were extracted from — e.g., "Exact per-call counts from VS Copilot diagnostic log `EventType(11)` entries" or "Recovered from VS Copilot diagnostic log for the same VS session">
-- **Pricing basis:** <model pricing used, e.g., "Public Anthropic claude-opus rates ($15/MTok input, $75/MTok output)">. Actual costs through Copilot subscriptions may differ from raw API pricing.
-- **Session isolation:** <note whether the log is scoped to this run only, or covers a broader VS session. Flag if cross-contamination from other interactions is possible.>
-- **What's NOT included:** VS infrastructure overhead, network latency costs, or any Microsoft-internal platform fees.
-- **Accuracy:** Token counts are exact; dollar amounts are directional estimates based on public pricing.
+### Model pricing used (per 1M tokens)
+
+| Model | Input | Output | Recommended for |
+|-------|-------|--------|----------------|
+| <Premium model> | $X.XX | $X.XX | Code generation only |
+| <Mid-tier model> | $X.XX | $X.XX | Prompt analysis, consolidation |
+| <Fast/cheap model> | $X.XX | $X.XX | Tool/type resolution, simple lookups |
+
+### At-scale impact
+
+| Metric | Per run | 10 runs/day | Monthly (200 runs) |
+|--------|---------|------------|-------------------|
+| Current cost | $X.XX | $X.XX | $X.XX |
+| Optimized cost | $X.XX | $X.XX | $X.XX |
+| **Savings** | **$X.XX** | **$X.XX** | **$X.XX** |
+
+(Include this sub-section to show the compounding impact of per-run savings. Adjust the runs/day and monthly figures to match the team's typical usage.)
 
 ## Reduction Strategies Summary
 
 | # | Strategy | Estimated savings | Effort |
 |---|----------|------------------|--------|
-| 1 | <strategy> | <calls/tokens/time saved> | <Low/Medium/High> |
+| 1 | <strategy> | <$X.XX/run (Y%) or time saved> | <Low/Medium/High> |
 | 2 | ... | ... | ... |
 
-(Rank by savings descending. Include effort estimate: Low = config change or prompt tweak, Medium = orchestrator logic change, High = architecture change.)
+(Rank by savings descending. Include effort estimate: Low = config change or prompt tweak, Medium = orchestrator logic change, High = architecture change. Use dollar amounts when available, time savings otherwise.)
+
+## Efficiency Metrics vs. Baseline
+
+| Metric | This Run | Baseline (single project, 5–10 files) | Assessment |
+|--------|----------|---------------------------------------|------------|
+| Primary LLM calls | <N> | 10–25 | <✅/⚠️/❌> |
+| Total API calls | <N> | 50–150 | <✅/⚠️/❌> |
+| Duration | <X min Y sec> | 5–15 min | <✅/⚠️/❌> |
+| Total tokens | <N> | 50K–150K | <✅/⚠️/❌> |
+| Builds | <N> | 5–15 | <✅/⚠️/❌> |
+| Test executions | <N> (<M> passing) | 5–10 | <✅/⚠️/❌> |
+| get_type_info | <N> | 50–100 | <✅/⚠️/❌> |
+| Cache hit rate | <X%> | 30–50% | <✅/⚠️/❌> |
+| Estimated cost | $X.XX | $5–$20 | <✅/⚠️/❌> |
+
+(Compare key metrics against baselines from the Baseline Expectations table. Use ✅ for within range, ⚠️ for slightly above, ❌ for significantly above. Omit rows that don't apply to the tool type.)
+
+## Cost Methodology
+
+The cost estimates in this report are **approximate and intended for relative comparison**, not billing predictions. Here's how they are calculated:
+
+### Token source
+
+- <State where token counts came from. Options:>
+  - **Primary log:** Token data was extracted directly from the <TA/Copilot> log.
+  - **Cross-log extraction:** The <TA> log reported `HasUsage: False`. Token data was extracted from the **Copilot diagnostic log** (`copilot-output.log`), which captures `InputTokenCount`, `OutputTokenCount`, and `CachedInputTokenCount` for every LLM API call made through the VS Copilot service layer.
+  - **Estimated from response lengths:** No token data was available. Tokens were estimated using ~4 chars per token for output, with input tokens assumed at 3–5× output.
+- **Time-window filtering:** Only API calls within the run window (<start>–<end> UTC, from `run-metadata.md`) were included.
+
+### Call categorization
+
+API calls were classified by **output token count** as a proxy for call complexity:
+
+| Category | Output tokens | Rationale |
+|----------|--------------|-----------|
+| **Tool/Type resolution** | ≤ 200 | Short responses typical of `get_type_info`, tool dispatches, and type lookups |
+| **Medium tasks** | 201–500 | Prompt analysis, consolidation, and mid-complexity responses |
+| **Code generation** | > 500 | Substantial code output typical of test file generation |
+
+This heuristic is imperfect — some tool calls may produce >200 tokens, and some code gen calls may be short — but it provides a reasonable split for cost estimation.
+
+### Pricing model
+
+Costs are calculated using **publicly available list prices** (as of <month/year>) for the model families. These are **not** the actual prices charged by the Copilot service, which may differ based on enterprise agreements, bundled pricing, or internal cost structures.
+
+| Model | Input (per 1M tokens) | Output (per 1M tokens) | Used for |
+|-------|----------------------|----------------------|----------|
+| <Premium model> | $X.XX | $X.XX | Current: all calls. Optimized: code generation only |
+| <Mid-tier model> | $X.XX | $X.XX | Optimized: medium-complexity tasks |
+| <Fast/cheap model> | $X.XX | $X.XX | Optimized: tool/type resolution |
+
+### Formula
+
+```
+cost = (input_tokens × input_rate / 1,000,000) + (output_tokens × output_rate / 1,000,000)
 ```
 
-Save as `llm-efficiency.md` in the artifacts folder, then **also copy** to the central `<artifact_root>/llmefficiency/` directory with a tool-specific name:
-- If the run is a Copilot run: copy as `llm-efficiency-copilot.md`
-- If the run is a Testing Agent run: copy as `llm-efficiency-testingagent.md`
-- Create the `llmefficiency/` directory if it doesn't exist.
+Applied per category, then summed for totals. Cached tokens use a discounted input rate (typically 10% of standard), but if cache hit rate is 0%, no discount is applied.
 
-This ensures each run folder has its own copy AND the central folder has the latest of each tool type for easy comparison.
+### Limitations
 
-Print the report to console.
+- **Not actual billing:** These estimates reflect raw API token costs, not what is charged to the user or organization through Copilot licensing.
+- **Copilot log may include extra calls:** The Copilot service log captures all LLM traffic during the time window. Some calls may be from background Copilot features (completions, suggestions) running concurrently, not from the agent itself. This could slightly inflate totals.
+- **Category heuristic:** Output-token-based classification is approximate. A more precise approach would correlate each Copilot log entry with the corresponding agent call by request ID, but this cross-referencing is not currently available.
+- **Prices change:** Model pricing is volatile. Use the savings percentages (not dollar amounts) for durable comparisons.
+```
+
+Save as `llm-efficiency.md` in the artifacts folder and print to console.
 
 ---
 
@@ -259,47 +370,40 @@ Pre-built strategies to recommend when patterns match. Adapt specifics to the ru
 | **Split into per-project runs** | Solution run where agent stalls on inter-project type resolution | Avoids stalls, more predictable duration |
 | **Increase context reuse** | Low cache hit rate in Copilot mode | 20-40% token reduction |
 | **Batch file generation** | Copilot making 1 file edit per turn instead of batching | 30-50% fewer round-trips |
+| **Smart model switching** | Same premium model used for all calls including simple classification/consolidation tasks | 5-15% total cost reduction; use premium for code gen, cheaper model for prompt analysis + insight consolidation |
 
 ---
 
-## Cost Calculation (Reference)
+## Cost Estimation Guidance
 
-### Model pricing table
+When token data is available (either from the primary log or cross-referenced from `copilot-output.log`), estimate costs using these reference rates. These are approximate and may change — use them for relative comparisons, not billing predictions.
 
-Use the model detected in `run-metadata.md` or from the log to look up pricing. These are public API rates as of early 2026 — actual Copilot subscription costs may differ.
+### Model pricing reference (per 1M tokens, approximate)
 
-| Model | Input ($/MTok) | Output ($/MTok) | Notes |
-|-------|---------------|-----------------|-------|
-| claude-opus-4.6 | $15.00 | $75.00 | Premium tier |
-| claude-sonnet-4.6 | $3.00 | $15.00 | Standard tier |
-| gpt-4o | $2.50 | $10.00 | Standard tier |
-| gpt-4.1 | $2.00 | $8.00 | Standard tier |
+| Model | Input | Output | Cached Input |
+|-------|-------|--------|-------------|
+| Claude Opus 4 | $15.00 | $75.00 | $1.50 |
+| Claude Sonnet 4 | $3.00 | $15.00 | $0.30 |
+| Claude Haiku 4 | $0.80 | $4.00 | $0.08 |
+| GPT-4.1 | $2.00 | $8.00 | $0.50 |
 
-If the model is not in this table, note "Unknown pricing — costs not estimated" and skip the cost section.
+### Smart model switching analysis
 
-### Token extraction by tool type
+When all calls use a single premium model, always check if cheaper models could handle non-code-generation calls. Classify each LLM call into one of these categories:
 
-**Copilot Agent Mode:**
-- Token data comes from `EventType(11)` entries in the Copilot diagnostic log (`copilot-output.log`).
-- Each entry has `InputTokenCount` and `OutputTokenCount` — sum across all entries.
-- The log is scoped to a single Copilot chat session, so cross-contamination is minimal.
+| Category | Examples | Recommended model tier |
+|----------|----------|----------------------|
+| **Code generation** | ToolBasedCSharpCodeGenAgent, file creation, test writing | Premium (Opus/GPT-4) — quality matters |
+| **Prompt analysis** | FreeFormPromptAnalyzerAgent_Config, _Location | Fast/cheap (Haiku/GPT-4.1) |
+| **Consolidation** | InsightConsolidationAgent, summary generation | Mid-tier (Sonnet) or fast/cheap |
+| **Fix iteration** | Compilation error fixes, test failure fixes | Mid-tier (Sonnet) — speed > quality |
 
-**Testing Agent:**
-- The TA's own log (`codetestingagent.log`) reports "No usage information available" — it does NOT track token usage.
-- Token data must be recovered from the **VS Copilot diagnostic log for the same VS session**. This is the log under `%TEMP%\VSGitHubCopilotLogs\` that was active when the TA ran.
-- To find the right log: search Copilot logs that reference the TA repo path, or match by timestamp overlap with the TA run window.
-- The Copilot log captures all LLM API calls routed through the Copilot infrastructure, including TA calls as `EventType(11)`.
-- **Caveat:** This log covers the entire VS session, not just the TA run. If other Copilot interactions occurred in the same VS window, their tokens may be included. Note this in the Cost Methodology section when applicable.
+In the report, include a **Cost Estimate** section (after the LLM Call Breakdown table) showing:
+1. **Current estimated cost** — total tokens × premium model rate
+2. **Optimized estimated cost** — re-price each call category at its recommended tier
+3. **Potential savings** — the delta, both absolute and as a percentage
 
-### Formulas
-
-```
-Total cost    = (input_tokens × input_rate / 1,000,000) + (output_tokens × output_rate / 1,000,000)
-Per test      = total_cost / tests_generated
-Per working   = total_cost / tests_passing
-```
-
-**"Per working test"** is the most meaningful cost-efficiency metric — it penalizes runs that generate broken tests (e.g., Moq on non-virtual methods), making it directly comparable across tools.
+If token data is unavailable, estimate tokens from response lengths using the heuristic: ~4 chars per token for output, and assume input tokens are ~3-5× output tokens for code generation tasks.
 
 ---
 
