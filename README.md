@@ -34,6 +34,9 @@ A collection of prototype [GitHub Copilot Skills](https://docs.github.com/en/cop
 │   │   ├── run-diagnosis/
 │   │   ├── testing-agent-review/
 │   │   └── unit-test-comparison/
+│   ├── productivity/                      ← general-purpose DevOps & workflow skills
+│   │   ├── README.md
+│   │   └── file-ado-workitem/
 │   ├── workiq-communications/             ← return-to-work briefing skills (WorkIQ)
 │   │   ├── catchup-ic/
 │   │   └── catchup-manager/
@@ -70,6 +73,18 @@ Skills for reviewing and comparing .NET unit test output from the .NET Testing A
 | [`unit-test-comparison`](./skills/testing/unit-test-comparison/) | Side-by-side comparison of Testing Agent vs Copilot Agent Mode |
 
 > See the [testing README](./skills/testing/README.md) for the recommended workflow pipeline, detailed skill descriptions, and quick-start examples.
+
+### [Productivity](./skills/productivity/)
+
+General-purpose skills for streamlining DevOps workflows — filing work items, managing backlogs, and automating repetitive tasks. These skills are team-agnostic and work across any project.
+
+| Skill | Description |
+|-------|-------------|
+| [`file-ado-workitem`](./skills/productivity/file-ado-workitem/) | Create Azure DevOps work items from any file or inline description — auto-discovers project, area path, and work item type |
+
+**Prerequisites:** Requires [Azure DevOps MCP server](https://github.com/microsoft/azure-devops-mcp) to be connected.
+
+> See the [productivity README](./skills/productivity/README.md) for detailed skill descriptions and quick-start examples.
 
 ### [WorkIQ Communications](./skills/workiq-communications/)
 
