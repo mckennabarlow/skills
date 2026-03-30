@@ -9,3 +9,4 @@ A collection of [GitHub Copilot Skills](https://docs.github.com/en/copilot/how-t
 | Skill | Description |
 |-------|-------------|
 | [`code-coverage-analysis`](./code-coverage-analysis/) | One-shot code coverage analysis for .NET projects — runs tests, generates HTML report via ReportGenerator, and produces a markdown insights report with metrics, risk analysis, and prioritized recommendations |
+| [`playwright-test-review`](./playwright-test-review/) | Review Playwright E2E tests for quality and reliability — audits selectors, wait patterns, Page Object Models, assertions, test isolation, and diagnostic instrumentation. Produces a scored reliability report with prioritized issues |
