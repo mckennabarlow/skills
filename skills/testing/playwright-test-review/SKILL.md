@@ -1,5 +1,5 @@
 ---
-name: e2e-test-review
+name: playwright-test-review
 description: >
   Review Playwright end-to-end test files for quality, maintainability, and reliability. Analyzes
   .NET Playwright tests (NUnit, MSTest, xUnit) for common E2E anti-patterns: brittle selectors,
@@ -8,9 +8,9 @@ description: >
   When a Copilot or agent log is available, enriches the review with generation context.
   Use this skill when asked to review Playwright tests, analyze E2E test quality, assess end-to-end
   tests, or check Playwright tests for flakiness.
-  Trigger phrases include "review e2e tests", "review playwright tests", "e2e test review",
-  "playwright test review", "check my playwright tests", "analyze end-to-end tests",
-  "are my e2e tests flaky", "playwright quality check".
+  Trigger phrases include "review playwright tests", "playwright test review",
+  "check my playwright tests", "analyze playwright tests", "playwright quality check",
+  "are my playwright tests flaky", "review e2e tests", "e2e test review".
 ---
 
 # Playwright E2E Test Review Skill
